@@ -1,0 +1,182 @@
+/* Login.css - Exactamente el mismo ADN que Registro */
+.login-container {
+  min-height: 100vh;
+  
+  /* --- ESTAS 5 LÍNEAS ROMPEN EL LÍMITE DE VITE --- */
+  width: 100vw; 
+  position: absolute; 
+  top: 0;
+  left: 0;
+  box-sizing: border-box;
+
+  background: linear-gradient(135deg, #F8EDFB 0%, #EADFF0 100%);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 20px;
+  font-family: system-ui, -apple-system, sans-serif;
+}
+
+.login-wrapper {
+  width: 90%;
+  max-width: 650px;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+}
+
+.login-header {
+  text-align: center;
+  margin-bottom: 30px;
+}
+
+.login-logo {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 10px;
+  margin-bottom: 10px;
+  color: #7A3A8E;
+}
+
+.login-title {
+  font-size: 2.5rem;
+  font-weight: 800;
+  color: #522566;
+  margin: 0;
+}
+
+.login-subtitle {
+  color: #7A3A8E;
+  margin: 0;
+  font-size: 1.1rem;
+}
+
+.login-card {
+  background-color: #ffffff;
+  width: 100%;
+  border-radius: 16px;
+  padding: 60px 50px;
+  box-shadow: 0 10px 40px rgba(82, 37, 102, 0.08);
+  border: 1px solid rgba(173, 116, 195, 0.2);
+}
+
+.login-card h2 {
+  color: #522566;
+  font-size: 1.5rem;
+  font-weight: 600;
+  margin-top: 0;
+  margin-bottom: 25px;
+  text-align: center;
+}
+
+.form-group {
+  margin-bottom: 20px;
+}
+
+.form-group label {
+  display: block;
+  font-size: 0.85rem;
+  font-weight: 500;
+  color: #522566;
+  margin-bottom: 5px;
+}
+
+.input-container {
+  position: relative;
+  display: flex;
+  align-items: center;
+}
+
+.input-icon {
+  position: absolute;
+  left: 5px;
+  color: #AD74C3;
+  width: 20px;
+  height: 20px;
+  transition: color 0.3s ease;
+}
+
+.form-input {
+  width: 100%;
+  height: 40px;
+  border: none;
+  border-bottom: 2px solid #EADFF0;
+  background-color: transparent;
+  padding-left: 35px;
+  padding-right: 10px;
+  font-size: 0.95rem;
+  color: #333;
+  outline: none;
+  transition: border-color 0.3s ease;
+}
+
+.form-input::placeholder {
+  color: #bbb;
+}
+
+.form-input:focus {
+  border-bottom-color: #7A3A8E;
+}
+
+.form-input:focus + .input-icon,
+.input-container:focus-within .input-icon {
+  color: #7A3A8E;
+}
+
+.btn-submit {
+  width: 100%;
+  height: 48px;
+  background-color: #7A3A8E;
+  color: white;
+  border: none;
+  border-radius: 8px;
+  font-size: 1rem;
+  font-weight: 600;
+  cursor: pointer;
+  margin-top: 15px;
+  transition: background-color 0.2s ease, transform 0.1s ease;
+  box-shadow: 0 4px 12px rgba(122, 58, 142, 0.3);
+}
+
+.btn-submit:hover:not(:disabled) {
+  background-color: #522566;
+}
+
+.btn-submit:active:not(:disabled) {
+  transform: scale(0.98);
+}
+
+.btn-submit:disabled {
+  opacity: 0.7;
+  cursor: not-allowed;
+}
+
+.login-footer {
+  margin-top: 25px;
+  text-align: center;
+  font-size: 0.9rem;
+  color: #7A3A8E;
+}
+
+.register-link {
+  color: #7A3A8E;
+  font-weight: 600;
+  text-decoration: none;
+}
+
+.register-link:hover {
+  text-decoration: underline;
+  color: #522566;
+}
+
+/* Esto le dice al navegador: "Si la pantalla mide menos de 768px (tamaño tablet/celular), aplica estas reglas" */
+@media (max-width: 768px) {
+  .login-card {
+    padding: 30px 20px; /* Menos espacio interno en celulares para que quepa bien */
+  }
+  
+  .login-title {
+    font-size: 2rem; /* Título un poco más pequeño en celular */
+  }
+}

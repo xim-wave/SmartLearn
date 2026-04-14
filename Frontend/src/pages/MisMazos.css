@@ -1,0 +1,303 @@
+/* MisMazos.css */
+.decks-container {
+  padding: 2rem;
+  font-family: system-ui, -apple-system, sans-serif;
+}
+
+/* --- ENCABEZADO --- */
+.decks-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 2rem;
+  flex-wrap: wrap;
+  gap: 1rem;
+}
+
+.decks-title {
+  color: #522566;
+  font-size: 1.8rem;
+  font-weight: 800;
+  margin: 0 0 0.25rem 0;
+}
+
+.decks-subtitle {
+  color: #7A3A8E;
+  margin: 0;
+  font-size: 0.95rem;
+}
+
+.btn-new-deck {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  background-color: #7A3A8E;
+  color: white;
+  border: none;
+  border-radius: 8px;
+  padding: 10px 16px;
+  font-weight: 600;
+  font-size: 0.95rem;
+  cursor: pointer;
+  transition: background-color 0.2s ease;
+}
+
+.btn-new-deck:hover {
+  background-color: #522566;
+}
+
+/* --- GRID DE TARJETAS --- */
+.decks-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(320px, 1fr));
+  gap: 1.5rem;
+}
+
+.deck-card {
+  background-color: white;
+  border-radius: 12px;
+  padding: 1.5rem;
+  box-shadow: 0 2px 10px rgba(82, 37, 102, 0.05);
+  display: flex;
+  flex-direction: column;
+  gap: 1.25rem;
+  transition: transform 0.2s ease, box-shadow 0.2s ease;
+}
+
+.deck-card:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 4px 15px rgba(82, 37, 102, 0.1);
+}
+
+/* Superior de la tarjeta */
+.deck-card-top {
+  display: flex;
+  justify-content: space-between; /* Separa el título de los botones */
+  align-items: flex-start;
+}
+
+.deck-title-group {
+  display: flex;
+  gap: 1rem;
+}
+
+.deck-icon {
+  width: 40px;
+  height: 40px;
+  background-color: #F8EDFB;
+  border-radius: 8px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: #7A3A8E;
+  flex-shrink: 0;
+}
+
+.deck-info h3 {
+  margin: 0 0 0.25rem 0;
+  color: #522566;
+  font-size: 1.1rem;
+  font-weight: 700;
+}
+
+.deck-info p {
+  margin: 0;
+  color: #a0aec0;
+  font-size: 0.85rem;
+}
+
+/* --- NUEVOS BOTONES DE ACCIÓN --- */
+.deck-actions {
+  display: flex;
+  gap: 0.25rem;
+  opacity: 0; /* Totalmente transparente por defecto */
+  transition: opacity 0.2s ease; /* Transición suave */
+}
+
+/* ¡LA MAGIA! Cuando el ratón pasa sobre .deck-card, .deck-actions se vuelve visible */
+.deck-card:hover .deck-actions {
+  opacity: 1;
+}
+
+.btn-action {
+  background: none;
+  border: none;
+  color: #a0aec0;
+  cursor: pointer;
+  padding: 6px;
+  border-radius: 6px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition: all 0.2s ease;
+}
+
+.btn-action:hover {
+  background-color: #F8EDFB;
+  color: #522566;
+}
+
+/* Botón de eliminar con color rojo al pasar el ratón */
+.btn-delete:hover {
+  background-color: #fee2e2;
+  color: #dc2626;
+}
+
+/* Medio de la tarjeta (Etiquetas) */
+.deck-card-middle {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+
+.tag-cards {
+  background-color: #F8EDFB;
+  color: #7A3A8E;
+  padding: 4px 8px;
+  border-radius: 6px;
+  font-size: 0.75rem;
+  font-weight: 600;
+}
+
+.text-due {
+  color: #dc2626;
+  font-size: 0.8rem;
+  font-weight: 600;
+}
+
+/* Inferior (Barra de progreso) */
+.deck-card-bottom {
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
+}
+
+.progress-labels {
+  display: flex;
+  justify-content: space-between;
+  font-size: 0.75rem;
+  color: #522566;
+  font-weight: 600;
+}
+
+.progress-bar-bg {
+  height: 8px;
+  background-color: #EADFF0;
+  border-radius: 4px;
+  overflow: hidden;
+}
+
+.progress-bar-fill {
+  height: 100%;
+  background-color: #522566;
+  border-radius: 4px;
+  transition: width 0.3s ease;
+}
+
+/* --- ESTILOS DEL MODAL --- */
+.modal-overlay {
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100vw;
+  height: 100vh;
+  background-color: rgba(0, 0, 0, 0.4);
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  z-index: 1000; /* Para que quede por encima de todo */
+}
+
+.modal-content {
+  background-color: white;
+  width: 90%;
+  max-width: 450px;
+  border-radius: 12px;
+  padding: 1.5rem;
+  box-shadow: 0 10px 25px rgba(0, 0, 0, 0.1);
+}
+
+.modal-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 1.5rem;
+}
+
+.modal-header h2 {
+  margin: 0;
+  color: #522566;
+  font-size: 1.25rem;
+  font-weight: 700;
+}
+
+.btn-close {
+  background: none;
+  border: none;
+  color: #a0aec0;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 4px;
+  border-radius: 4px;
+  transition: all 0.2s;
+}
+
+.btn-close:hover {
+  background-color: #F8EDFB;
+  color: #522566;
+}
+
+.form-group {
+  display: flex;
+  flex-direction: column;
+  margin-bottom: 1.25rem;
+}
+
+.form-group label {
+  color: #522566;
+  font-size: 0.9rem;
+  font-weight: 600;
+  margin-bottom: 0.5rem;
+}
+
+.form-group input,
+.form-group textarea {
+  padding: 10px 12px;
+  border: 1px solid #EADFF0;
+  border-radius: 8px;
+  font-family: inherit;
+  font-size: 0.95rem;
+  color: #333;
+  transition: border-color 0.2s;
+  outline: none;
+}
+
+.form-group input:focus,
+.form-group textarea:focus {
+  border-color: #7A3A8E;
+  box-shadow: 0 0 0 3px rgba(122, 58, 142, 0.1);
+}
+
+.form-group textarea {
+  resize: vertical;
+}
+
+.btn-submit-deck {
+  width: 100%;
+  background-color: #7A3A8E;
+  color: white;
+  border: none;
+  border-radius: 8px;
+  padding: 12px;
+  font-weight: 600;
+  font-size: 1rem;
+  cursor: pointer;
+  transition: background-color 0.2s ease;
+  margin-top: 0.5rem;
+}
+
+.btn-submit-deck:hover {
+  background-color: #522566;
+}

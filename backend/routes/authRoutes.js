@@ -1,3 +1,12 @@
+/*
+=======================================================
+*Archivo: authRouters.js
+*Descripción: Define los endpoints para la autenticacion
+*conecta peticiones HTTP (/registro, /login) con sus 
+*respectivas funciones en el authControler
+=========================================================
+*/
+
 //importar Express y crear router
 const express = require('express');
 const router = express.Router();

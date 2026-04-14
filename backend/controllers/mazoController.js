@@ -1,3 +1,13 @@
+/*
+=============================================================
+*Archivo: mazoController.js
+*Descripción: Controlador para la gestión de Mazos de estudio
+*Contiene las funciones para crear nuevos mazos
+*y consultar los mazos existentes en la base de datos Supabase
+==============================================================
+*/
+
+
 //importar la llave para comunicar con la base de datos
 const supabase = require('../services/supabaseClient');
 

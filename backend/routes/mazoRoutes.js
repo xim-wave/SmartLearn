@@ -1,3 +1,12 @@
+/*
+=============================================================
+*Archivo: mazoRoutes.js
+*Descripción: Define los endpoints para la gestion de mazos
+*Conecta las peticiones HTTP(GET, POST) en la ruta /api/mazos
+*con las funciones del mazoController
+==============================================================
+*/
+
 //importamos Express para manejar las direcciones web
 const express = require('express');
 

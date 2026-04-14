@@ -1,4 +1,14 @@
+/*
+======================================================
+*Archivo: sm2.js (Directorio Utils)
+*Descripción: Contiene la lógica del algoritmo SM-2
+*Calcula los intervalos de repetición espaciada
+*y el factor de facilidad de cada tarjeta basándose en 
+*la calidad de respuesta del usuario (0-5)
+======================================================
+*/
 const calcularSM2 = (calidad, repeticiones, intervalo, factorFacilidad) =>{
+    
     //validamos que la calidad sea un numero del 0 al 5
     //0=mente en blanco, 5= respuesta perfecta e inmediata
     if(calidad < 0 || calidad > 5){

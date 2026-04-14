@@ -1,3 +1,13 @@
+/*
+===================================================================
+*Archivo: authController.js
+*Descripción: Controlador encargado de la autenticación de usuarios
+*Maneja la lógica para registrar nuevos usuarios e iniciar sesion
+*comunicandose directamente con Supabase Auth 
+*Y gestiona la entrega de Tokens de acceso
+====================================================================
+*/
+
 //conexion a base de datos
 const supabase = require('../services/supabaseClient');
 

@@ -1,3 +1,13 @@
+/*
+==============================================================
+*Archivo: flashcardController.js
+*Descripción: Controlador central de las Flashcards
+*Encargada de crear nuevas tarjetas con los valores iniciales 
+*en CERO y de gestionar la funcion de repaso, conectando a la
+*base de datos en el algoritmo SM-2
+==============================================================
+*/
+
 const supabase = require('../services/supabaseClient');
 
 //funcion flashcard nueva

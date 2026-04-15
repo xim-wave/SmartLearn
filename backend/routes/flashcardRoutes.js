@@ -9,10 +9,16 @@
 
 const express = require('express');
 const router = express.Router();
-const{crearFlashcard} = require('../controllers/flashcardController');
+const{crearFlashcard, repasarFlashcard, obtenerTarjetasParaRepasar} = require('../controllers/flashcardController');
 
 //puerta POST para crear la tarjeta
 router.post('/',crearFlashcard);
+
+//Puerta PUT para repasar / actualizar una tarjeta existente
+router.put('/:id/repasar',repasarFlashcard);
+
+//Puerta GET para pedir las tarjetas que tocan estudiar hoy de un mazo especifico
+router.get('/estudiar/:mazo_id', obtenerTarjetasParaRepasar);
 
 //exportar funcion
 module.exports = router;

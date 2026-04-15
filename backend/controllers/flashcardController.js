@@ -10,6 +10,9 @@
 
 const supabase = require('../services/supabaseClient');
 
+//importamos el algoritmo
+const {calcularSM2} = require ('../utils/sm2');
+
 //funcion flashcard nueva
 const crearFlashcard= async(req, res) =>{
     try{
@@ -48,4 +51,83 @@ const crearFlashcard= async(req, res) =>{
     }
 };
 
-module.exports = {crearFlashcard};
+//funcion repasar una flashcard
+const repasarFlashcard = async(req, res) =>{
+    try{
+        const {id} = req.params;
+        const {calidad} = req.body;
+
+        //buscar tarjeta actual
+        const{data: tarjetaVieja, error: errorBusqueda} = await supabase
+        .from('flashcards')
+        .select('repeticiones, intervalo_dias, factor_facilidad')
+        .eq('flashcard_id', id)
+        .single();
+
+        if(errorBusqueda) throw errorBusqueda;
+
+        //calcula los nuevos valores con SM-2
+        const nuevosValores = calcularSM2(
+            calidad,
+            tarjetaVieja.repeticiones,
+            tarjetaVieja.intervalo_dias,
+            tarjetaVieja.factor_facilidad
+        );
+
+        //calcula la nueva fecha
+        const fechaProxima = new Date();
+        fechaProxima.setDate(fechaProxima.getDate() + nuevosValores.intervalo);
+        const proximaRevisionString = fechaProxima.toISOString().split('T')[0];
+
+        //guarda la actualizacion
+        const {data: tarjetaActualizada, error: errorActualizacion} = await supabase
+        .from('flashcards')
+        .update({
+            repeticiones: nuevosValores.repeticiones,
+            intervalo_dias: nuevosValores.intervalo,
+            factor_facilidad: nuevosValores.factorFacilidad,
+            prox_revision: proximaRevisionString
+        })
+        .eq('flashcard_id', id)
+        .select();
+
+        if(errorActualizacion) throw errorActualizacion;
+
+        res.status(200).json({
+            status: 200,
+            mensaje: "Repaso guardado.",
+            flashcard: tarjetaActualizada[0]
+        });
+    } catch(error){
+        console.error("Error al repasar flashcard. ", error.message);
+        res.status(500).json({error: error.message});
+    }
+};
+
+//funcion Obtener tarjetas para repasar hoy
+const obtenerTarjetasParaRepasar = async(req, res) => {
+    try{
+        const {mazo_id} = req.params;
+        const fechaHoy = new Date().toISOString().split('T')[0];
+
+        const {data, error} = await supabase
+        .from('flashcards')
+        .select('*')
+        .eq('mazo_id', mazo_id)
+        .lte('prox_revision', fechaHoy)
+
+    if (error) throw error;
+
+    res.status(200).json({
+        status: 200,
+        mensaje: data.length > 0 ? `Tienes ${data.length} tarjetas pendientes` : `Estas al dia`,
+        flashcards: data
+    });
+
+    } catch(error){
+        console.error("Error al obtener tarjetas: ", error.message);
+        res.status(500).json({error: error.message});
+    }
+};
+
+module.exports = {crearFlashcard, repasarFlashcard, obtenerTarjetasParaRepasar};

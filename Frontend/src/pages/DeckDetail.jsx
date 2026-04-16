@@ -35,6 +35,10 @@ export function DeckDetail() {
     navigate('/app/decks');
   };
 
+  const handleStudyMode = () => {
+    navigate(`/app/decks/${id}/study`);
+  };
+
   // Función para guardar un enlace de recurso
   const handleSaveResource = (e) => {
     e.preventDefault();
@@ -77,7 +81,7 @@ export function DeckDetail() {
           <h1>{currentDeck.title}</h1>
           <p>{currentDeck.description}</p>
         </div>
-        <button className="btn-study">
+        <button className="btn-study" onClick={handleStudyMode}>
           <Play size={16} fill="currentColor" />
           Estudiar Mazo
         </button>

@@ -1,71 +1,72 @@
 import { useState } from "react";
 import { useNavigate, Link } from "react-router-dom";
-import { Lock, Mail, User, GraduationCap } from "lucide-react";
-import { storage } from "../utils/storage";
-import "./Registro.css"; // <-- Aquí conectamos el diseño
+import { User, Mail, Lock, GraduationCap } from "lucide-react";
+import { authService } from "../services/authService";
+import "./Registro.css"; 
 
 export default function Registro() {
   const navigate = useNavigate();
-  const [name, setName] = useState("");
+  const [nombre, setNombre] = useState("");
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
-  const [confirmPassword, setConfirmPassword] = useState("");
   const [isLoading, setIsLoading] = useState(false);
+  const [error, setError] = useState("");
 
-  const handleRegister = (e) => {
+  const handleRegistro = async (e) => {
     e.preventDefault();
-
-    if (!name || !email || !password || !confirmPassword) {
-      alert("Por favor completa todos los campos");
-      return;
-    }
-
-    if (password !== confirmPassword) {
-      alert("Las contraseñas no coinciden");
-      return;
-    }
-
-    if (password.length < 6) {
-      alert("La contraseña debe tener al menos 6 caracteres");
-      return;
-    }
-
     setIsLoading(true);
+    setError("");
 
-    setTimeout(() => {
-      storage.saveUser({ email, name });
-      storage.initializeMockData();
-      alert("¡Cuenta creada exitosamente!");
-      navigate("/app/dashboard");
+    try {
+      // 1. Enviamos los datos al backend de tu equipo
+      await authService.registro({ nombre, email, password });
+      
+      // 2. Si todo sale bien, lo redirigimos al Login
+      navigate("/");
+      
+    } catch (err) {
+      console.error("Error al registrar:", err);
+      // Mostramos el error que devuelva el backend
+      setError(
+        err.response?.data?.mensaje || 
+        err.response?.data?.error || 
+        "Hubo un problema al crear tu cuenta. Intenta nuevamente."
+      );
+    } finally {
       setIsLoading(false);
-    }, 800);
+    }
   };
 
   return (
-    <div className="registro-container">
-      <div className="registro-wrapper">
-        
-        <div className="registro-header">
-          <div className="registro-logo">
+    <div className="login-container">
+      <div className="login-wrapper">
+        <div className="login-header">
+          <div className="login-logo">
             <GraduationCap size={48} />
-            <h1 className="registro-title">SmartLearn</h1>
+            <h1 className="login-title">SmartLearn</h1>
           </div>
-          <p className="registro-subtitle">Crea tu cuenta gratuita</p>
+          <p className="login-subtitle">Crea tu cuenta gratis</p>
         </div>
 
-        <div className="registro-card">
-          <h2>Crear cuenta</h2>
+        <div className="login-card">
+          <h2>Regístrate</h2>
 
-          <form onSubmit={handleRegister}>
+          {error && (
+            <div style={{ backgroundColor: "#FEE2E2", color: "#991B1B", padding: "12px", borderRadius: "8px", marginBottom: "20px", fontSize: "0.9rem", textAlign: "center", border: "1px solid #FCA5A5" }}>
+              {error}
+            </div>
+          )}
+
+          <form onSubmit={handleRegistro}>
             <div className="form-group">
-              <label htmlFor="name">Nombre completo</label>
+              <label htmlFor="nombre">Nombre completo</label>
               <div className="input-container">
                 <input
-                  id="name"
+                  id="nombre"
                   type="text"
                   placeholder="Tu nombre"
-                  value={name}
-                  onChange={(e) => setName(e.target.value)}
+                  value={nombre}
+                  onChange={(e) => setNombre(e.target.value)}
                   required
                   className="form-input"
                 />
@@ -95,7 +96,7 @@ export default function Registro() {
                 <input
                   id="password"
                   type="password"
-                  placeholder="Mínimo 6 caracteres"
+                  placeholder="Crea una contraseña"
                   value={password}
                   onChange={(e) => setPassword(e.target.value)}
                   required
@@ -106,36 +107,18 @@ export default function Registro() {
               </div>
             </div>
 
-            <div className="form-group">
-              <label htmlFor="confirmPassword">Confirmar contraseña</label>
-              <div className="input-container">
-                <input
-                  id="confirmPassword"
-                  type="password"
-                  placeholder="Repite tu contraseña"
-                  value={confirmPassword}
-                  onChange={(e) => setConfirmPassword(e.target.value)}
-                  required
-                  className="form-input"
-                  style={{ paddingLeft: "10px", paddingRight: "35px" }}
-                />
-                <Lock className="input-icon" style={{ left: "auto", right: "5px" }} />
-              </div>
-            </div>
-
             <button type="submit" className="btn-submit" disabled={isLoading}>
-              {isLoading ? "Creando cuenta..." : "Crear cuenta"}
+              {isLoading ? "Creando cuenta..." : "Registrarme"}
             </button>
           </form>
 
-          <div className="registro-footer">
+          <div className="login-footer">
             ¿Ya tienes cuenta?{" "}
-            <Link to="/" className="login-link">
-              Inicia sesión
+            <Link to="/" className="register-link">
+              Inicia sesión aquí
             </Link>
           </div>
         </div>
-
       </div>
     </div>
   );

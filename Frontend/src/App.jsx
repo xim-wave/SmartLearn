@@ -1,6 +1,7 @@
 import { Routes, Route } from 'react-router-dom';
 import { DeckDetail } from './pages/DeckDetail';
 import { MisMazos } from './pages/MisMazos';
+import { StudyDeck } from './pages/StudyDeck';
 
 // Importamos el Layout que acabas de crear
 import { Layout } from './components/Layout';
@@ -29,6 +30,7 @@ function App() {
         
         {/* Ruta dinámica corregida (sin el /app/ al principio porque ya está anidada) */}
         <Route path="decks/:id" element={<DeckDetail />} />
+        <Route path="decks/:id/study" element={<StudyDeck />} />
       </Route>
     </Routes>
   );

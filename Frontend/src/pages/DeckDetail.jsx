@@ -1,177 +1,221 @@
-import React, { useState } from 'react';
-import { 
-  ArrowLeft, Plus, Link as LinkIcon, FileText, Upload, X, 
-  Pencil, Trash2, FlipHorizontal, PlayCircle, CheckCircle
-} from 'lucide-react';
+import React, { useState, useEffect } from 'react';
+import { useParams, useNavigate } from 'react-router-dom';
+import { ArrowLeft, Play, Plus, Upload, X, Sparkles, Layers, CheckCircle } from 'lucide-react';
+import { flashcardService } from '../services/flashcardService'; // 👈 Importamos el servicio
 import './DeckDetail.css';
 
 export function DeckDetail() {
-  // Estado para las pestañas
-  const [activeTab, setActiveTab] = useState('resources');
-  
-  // Estado para el panel lateral de recursos
-  const [isResourcePanelOpen, setIsResourcePanelOpen] = useState(false);
-  const [url, setUrl] = useState('');
+  const { id } = useParams();
+  const navigate = useNavigate();
 
-  // Estado para notificaciones
+  const [activeTab, setActiveTab] = useState('flashcards'); // Pestaña de flashcards por defecto
+  const [isModalOpen, setIsModalOpen] = useState(false);
+  const [isFlashcardModalOpen, setIsFlashcardModalOpen] = useState(false); // Modal para crear tarjeta manual
+  
+  // Estados para recursos y flashcards reales
+  const [resourcesList, setResourcesList] = useState([]); 
+  const [flashcardsList, setFlashcardsList] = useState([]);
+  const [currentDeck, setCurrentDeck] = useState({ title: 'Cargando...', description: '' });
+
+  // Estados para crear una nueva tarjeta manual
+  const [newQuestion, setNewQuestion] = useState('');
+  const [newAnswer, setNewAnswer] = useState('');
+  
+  // Estado para el Toast
   const [toast, setToast] = useState({ visible: false, message: '' });
 
-  // Mazo de prueba (Mock data)
-  const [deck, setDeck] = useState({
-    id: 1,
-    title: 'Ingeniería de Software',
-    description: 'Conceptos fundamentales de ingeniería de software',
-    resources: [],
-    flashcards: []
-  });
+  // 1. Cargar las tarjetas cuando entramos a la pantalla
+  useEffect(() => {
+    // Aquí idealmente deberíamos cargar los detalles del mazo desde el backend
+    // Por ahora, simulamos el mazo actual
+    setCurrentDeck({ title: `Mazo #${id}`, description: 'Descripción de tu mazo' });
+    
+    // Cargar las tarjetas reales del backend
+    cargarTarjetas();
+  }, [id]);
+
+  const cargarTarjetas = async () => {
+    try {
+      // Usamos la ruta "estudiar" que nos da las tarjetas de este mazo
+      const data = await flashcardService.obtenerParaRepasar(id);
+      
+      // Mapeamos para asegurar que los nombres de variables coincidan con tu diseño
+      const tarjetasReales = data.map(card => ({
+        id: card.id,
+        question: card.pregunta || card.question,
+        answer: card.respuesta || card.answer
+      }));
+      
+      setFlashcardsList(tarjetasReales);
+    } catch (error) {
+      console.error("Error al cargar tarjetas:", error);
+      showToast('Error al conectar con la base de datos');
+    }
+  };
 
   const showToast = (message) => {
     setToast({ visible: true, message });
-    setTimeout(() => setToast({ visible: false, message: '' }), 3000);
+    setTimeout(() => { setToast({ visible: false, message: '' }); }, 3000);
   };
 
-  const handleSaveResource = (e) => {
+  const handleGoBack = () => navigate('/app/decks');
+  const handleStudyMode = () => navigate(`/app/decks/${id}/study`);
+
+  // 2. Guardar una tarjeta REAL en el backend
+  const handleSaveFlashcard = async (e) => {
     e.preventDefault();
-    // Aquí en el futuro se guardará el recurso real
-    showToast('Recurso agregado exitosamente');
-    setIsResourcePanelOpen(false);
-    setUrl('');
+    if (!newQuestion.trim() || !newAnswer.trim()) return;
+
+    try {
+      await flashcardService.crearFlashcard({
+        mazo_id: parseInt(id),
+        pregunta: newQuestion,
+        respuesta: newAnswer
+      });
+
+      showToast('Tarjeta creada exitosamente');
+      setNewQuestion('');
+      setNewAnswer('');
+      setIsFlashcardModalOpen(false);
+      
+      // Recargar la lista de tarjetas
+      cargarTarjetas();
+    } catch (error) {
+      console.error("Error al crear tarjeta:", error);
+      showToast('Hubo un error al guardar la tarjeta');
+    }
   };
 
   return (
     <div className="deck-detail-container">
-      <div className="deck-detail-content">
-        
-        {/* --- HEADER --- */}
-        <div className="deck-header">
-          <button className="btn-back">
-            <ArrowLeft size={16} /> Volver a Mazos
-          </button>
-          
-          <div className="deck-title-row">
-            <div>
-              <h1 className="deck-main-title">{deck.title}</h1>
-              <p className="deck-main-desc">{deck.description}</p>
-            </div>
-            <button className="btn-study" disabled={deck.flashcards.length === 0}>
-              <PlayCircle size={20} />
-              Estudiar Mazo
-            </button>
-          </div>
+      <button className="btn-back" onClick={handleGoBack}>
+        <ArrowLeft size={16} />
+        Volver a Mazos
+      </button>
+
+      <div className="deck-detail-header">
+        <div className="deck-info">
+          <h1>{currentDeck.title}</h1>
+          <p>{currentDeck.description}</p>
         </div>
-
-        {/* --- TABS (Pestañas) --- */}
-        <div className="tabs-container">
-          <div className="tabs-list">
-            <button 
-              className={`tab-btn ${activeTab === 'resources' ? 'active' : ''}`}
-              onClick={() => setActiveTab('resources')}
-            >
-              Recursos ({deck.resources.length})
-            </button>
-            <button 
-              className={`tab-btn ${activeTab === 'flashcards' ? 'active' : ''}`}
-              onClick={() => setActiveTab('flashcards')}
-            >
-              Flashcards ({deck.flashcards.length})
-            </button>
-          </div>
-
-          {/* CONTENIDO RECURSOS */}
-          {activeTab === 'resources' && (
-            <div className="tab-content">
-              <div className="tab-actions">
-                <button className="btn-primary" onClick={() => setIsResourcePanelOpen(true)}>
-                  <Plus size={16} /> Añadir Recurso
-                </button>
-              </div>
-
-              {deck.resources.length === 0 ? (
-                <div className="empty-state">
-                  <Upload size={48} className="empty-icon" />
-                  <h3>No hay recursos todavía</h3>
-                  <p>Comienza agregando enlaces (URLs) o subiendo archivos PDF (Máximo 10MB por archivo).</p>
-                </div>
-              ) : (
-                <p>Aquí iría la lista de recursos...</p>
-              )}
-            </div>
-          )}
-
-          {/* CONTENIDO FLASHCARDS */}
-          {activeTab === 'flashcards' && (
-            <div className="tab-content">
-              <div className="tab-actions">
-                <button className="btn-primary">
-                  <Plus size={16} /> Crear Flashcard
-                </button>
-              </div>
-
-              {deck.flashcards.length === 0 ? (
-                <div className="empty-state">
-                  <FlipHorizontal size={48} className="empty-icon" />
-                  <h3>Aún no hay flashcards</h3>
-                  <p>Crea tarjetas de pregunta y respuesta para empezar a estudiar con repetición espaciada.</p>
-                </div>
-              ) : (
-                <p>Aquí iría la lista de flashcards...</p>
-              )}
-            </div>
-          )}
-        </div>
+        <button className="btn-study" onClick={handleStudyMode}>
+          <Play size={16} fill="currentColor" />
+          Estudiar Mazo
+        </button>
       </div>
 
-      {/* --- PANEL LATERAL DESLIZABLE (Añadir Recurso) --- */}
-      {isResourcePanelOpen && (
-        <div className="slide-panel-overlay" onClick={() => setIsResourcePanelOpen(false)}>
-          <div className="slide-panel" onClick={e => e.stopPropagation()}>
-            
-            <div className="panel-header">
-              <h2>Agregar Nuevo Recurso</h2>
-              <p>Agrega una URL o sube un PDF</p>
-              <button className="btn-close-panel" onClick={() => setIsResourcePanelOpen(false)}>
+      <div className="tabs-container">
+        <button 
+          className={`tab-btn ${activeTab === 'flashcards' ? 'active' : ''}`}
+          onClick={() => setActiveTab('flashcards')}
+        >
+          Flashcards ({flashcardsList.length})
+        </button>
+        <button 
+          className={`tab-btn ${activeTab === 'recursos' ? 'active' : ''}`}
+          onClick={() => setActiveTab('recursos')}
+        >
+          Recursos ({resourcesList.length})
+        </button>
+      </div>
+
+      <div className="tab-content">
+        
+        {/* PESTAÑA: FLASHCARDS */}
+        {activeTab === 'flashcards' && (
+          <div className="flashcards-section">
+            <div className="section-actions">
+              {/* Botón para crear tarjeta manualmente (NUEVO) */}
+              <button className="btn-add" onClick={() => setIsFlashcardModalOpen(true)} style={{ marginRight: '10px' }}>
+                <Plus size={16} />
+                Crear Tarjeta Manual
+              </button>
+              
+              <button className="btn-add" onClick={() => showToast('¡Próximamente! Generación por IA')} style={{ backgroundColor: '#f0e6ff', color: '#6b21a8' }}>
+                <Sparkles size={16} />
+                Generar con IA
+              </button>
+            </div>
+
+            {flashcardsList.length === 0 ? (
+              <div className="empty-state">
+                <Layers size={48} className="empty-icon" />
+                <h3>Aún no hay flashcards</h3>
+                <p>Crea tu primera tarjeta manualmente o usa la IA para generarlas a partir de tus apuntes.</p>
+              </div>
+            ) : (
+              <div className="flashcards-grid">
+                {flashcardsList.map((card) => (
+                  <div key={card.id} className="flashcard-item">
+                    <div className="flashcard-q">
+                      <span className="label-q">P</span>
+                      <p>{card.question}</p>
+                    </div>
+                    <hr className="flashcard-divider" />
+                    <div className="flashcard-a">
+                      <span className="label-a">R</span>
+                      <p>{card.answer}</p>
+                    </div>
+                  </div>
+                ))}
+              </div>
+            )}
+          </div>
+        )}
+
+        {/* PESTAÑA: RECURSOS (Mantenida igual por ahora) */}
+        {activeTab === 'recursos' && (
+          <div className="resources-section">
+            <div className="section-actions">
+              <button className="btn-add" onClick={() => setIsModalOpen(true)}>
+                <Plus size={16} /> Añadir Recurso
+              </button>
+            </div>
+            <div className="empty-state">
+              <Upload size={48} className="empty-icon" />
+              <h3>Sección en construcción</h3>
+              <p>Próximamente podrás subir tus PDFs aquí.</p>
+            </div>
+          </div>
+        )}
+      </div>
+
+      {/* --- MODAL PARA CREAR TARJETA MANUAL --- */}
+      {isFlashcardModalOpen && (
+        <div className="modal-overlay">
+          <div className="modal-content">
+            <div className="modal-header">
+              <h2>Nueva Tarjeta</h2>
+              <button className="btn-close" onClick={() => setIsFlashcardModalOpen(false)}>
                 <X size={20} />
               </button>
             </div>
-
-            <form className="panel-body" onSubmit={handleSaveResource}>
+            
+            <form onSubmit={handleSaveFlashcard}>
+              <div className="form-group">
+                <label>Pregunta (Anverso)</label>
+                <textarea 
+                  placeholder="Ej: ¿Qué es una clave primaria en SQL?" 
+                  value={newQuestion}
+                  onChange={(e) => setNewQuestion(e.target.value)}
+                  rows="2"
+                  autoFocus
+                ></textarea>
+              </div>
               
               <div className="form-group">
-                <label>Mazo destino</label>
-                <select className="input-field">
-                  <option>{deck.title}</option>
-                </select>
+                <label>Respuesta (Reverso)</label>
+                <textarea 
+                  placeholder="Ej: Es un campo único que identifica de forma exclusiva cada registro en una tabla."
+                  value={newAnswer}
+                  onChange={(e) => setNewAnswer(e.target.value)}
+                  rows="3"
+                ></textarea>
               </div>
 
-              <div className="form-group">
-                <label>URL (YouTube, artículos, etc.)</label>
-                <input 
-                  type="url" 
-                  className="input-field" 
-                  placeholder="Pegar URL externa..." 
-                  value={url}
-                  onChange={(e) => setUrl(e.target.value)}
-                />
-              </div>
-
-              <div className="divider">
-                <span>O</span>
-              </div>
-
-              <div className="form-group">
-                <label>Subir PDF</label>
-                <div className="dropzone">
-                  <Upload size={32} className="dropzone-icon" />
-                  <span className="dropzone-text">Arrastra tu PDF aquí o haz clic para buscar</span>
-                  <span className="dropzone-subtext">Solo formato .pdf hasta 10MB</span>
-                  <input type="file" accept=".pdf" className="file-input" />
-                </div>
-              </div>
-
-              <button type="submit" className="btn-primary w-full mt-auto">
-                Guardar Recurso
+              <button type="submit" className="btn-submit-deck">
+                Guardar Tarjeta
               </button>
-
             </form>
           </div>
         </div>

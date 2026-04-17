@@ -1,21 +1,13 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
-// Añadimos el icono CheckCircle para el mensaje de éxito
 import { BookOpen, Plus, X, Pencil, Trash2, CheckCircle } from 'lucide-react';
+import { mazoService } from '../services/mazoService'; // 👈 Importamos la conexión al backend
 import './MisMazos.css';
 
 export function MisMazos() {
-    const navigate = useNavigate();
-  // Estado para los mazos
-  const [decks, setDecks] = useState([
-    { id: 1, title: 'Ingeniería de Software', description: 'Conceptos fundamentales de ingeniería de software', totalCards: 3, dueCards: 3, progress: 65 },
-    { id: 2, title: 'Estructuras de Datos', description: 'Listas, árboles, grafos y algoritmos', totalCards: 2, dueCards: 2, progress: 40 },
-    { id: 3, title: 'Bases de Datos', description: 'SQL, normalización y diseño', totalCards: 1, dueCards: 1, progress: 80 },
-  ]);
-
-  const handleDeckClick = (id) => {
-  navigate(`/app/decks/${id}`); // Esto asume que tu ruta en App.jsx es /app/decks/:id
-};
+  const navigate = useNavigate();
+  // 1. Iniciamos los mazos como un arreglo vacío (se llenarán desde el backend)
+  const [decks, setDecks] = useState([]);
 
   // Estados para los formularios y modales
   const [modalConfig, setModalConfig] = useState({ isOpen: false, mode: 'create', deckId: null });
@@ -26,15 +18,45 @@ export function MisMazos() {
   // Estado para el mensaje Toast (notificación)
   const [toast, setToast] = useState({ visible: false, message: '' });
 
-  // Función para mostrar el mensaje temporalmente
+  // 2. Este Hook hace que se carguen los mazos apenas entras a la pantalla
+  useEffect(() => {
+    cargarMazos();
+  }, []);
+
+  // Función que va a la base de datos a traer los mazos reales
+  const cargarMazos = async () => {
+    try {
+      const data = await mazoService.obtenerMazos();
+      
+      // Mapeamos los datos por si la base de datos usa nombres en español
+      // (ej. "nombre" en lugar de "title")
+      const mazosReales = data.map(mazo => ({
+        id: mazo.id,
+        title: mazo.nombre || mazo.title || 'Sin título',
+        description: mazo.descripcion || mazo.description || 'Sin descripción',
+        totalCards: mazo.totalCards || 0,
+        dueCards: mazo.dueCards || 0,
+        progress: mazo.progress || 0
+      }));
+
+      setDecks(mazosReales);
+    } catch (error) {
+      console.error("Error al cargar los mazos:", error);
+      showToast('Error al cargar los mazos desde el servidor');
+    }
+  };
+
   const showToast = (message) => {
     setToast({ visible: true, message });
     setTimeout(() => {
       setToast({ visible: false, message: '' });
-    }, 3000); // Se oculta después de 3 segundos
+    }, 3000);
   };
 
-  // --- LÓGICA DE CREAR / EDITAR ---
+  const handleDeckClick = (id) => {
+    navigate(`/app/decks/${id}`);
+  };
+
   const openCreateModal = () => {
     setDeckName('');
     setDeckDesc('');
@@ -47,43 +69,48 @@ export function MisMazos() {
     setModalConfig({ isOpen: true, mode: 'edit', deckId: deck.id });
   };
 
-  const handleSaveDeck = (e) => {
+  // 3. Modificamos el guardado para que envíe el mazo a Supabase
+  const handleSaveDeck = async (e) => {
     e.preventDefault();
     if (!deckName.trim()) return;
 
     if (modalConfig.mode === 'create') {
-      const newDeck = {
-        id: Date.now(),
-        title: deckName,
-        description: deckDesc || 'Sin descripción',
-        totalCards: 0,
-        dueCards: 0,
-        progress: 0
-      };
-      setDecks([...decks, newDeck]);
-      showToast('Mazo creado exitosamente');
+      try {
+        // Le mandamos los datos al backend
+        await mazoService.crearMazo({
+          nombre: deckName,
+          descripcion: deckDesc || 'Sin descripción'
+        });
+        
+        // Volvemos a pedir la lista actualizada a la base de datos
+        await cargarMazos();
+        showToast('Mazo guardado en la base de datos exitosamente');
+      } catch (error) {
+        console.error("Error al crear mazo:", error);
+        showToast('Error al guardar el mazo');
+      }
     } else {
-      // Modo edición
+      // Modo edición (por ahora solo visual en frontend hasta tener la ruta PUT en backend)
       setDecks(decks.map(deck => 
         deck.id === modalConfig.deckId 
           ? { ...deck, title: deckName, description: deckDesc } 
           : deck
       ));
-      showToast('Mazo editado exitosamente');
+      showToast('Mazo editado localmente');
     }
 
     setModalConfig({ isOpen: false, mode: 'create', deckId: null });
   };
 
-  // --- LÓGICA DE ELIMINAR ---
   const openDeleteModal = (id) => {
     setDeleteModalConfig({ isOpen: true, deckId: id });
   };
 
   const confirmDelete = () => {
+    // Eliminación (por ahora solo visual en frontend hasta tener la ruta DELETE en backend)
     setDecks(decks.filter(deck => deck.id !== deleteModalConfig.deckId));
     setDeleteModalConfig({ isOpen: false, deckId: null });
-    showToast('Mazo eliminado exitosamente');
+    showToast('Mazo eliminado localmente');
   };
 
   return (
@@ -100,45 +127,50 @@ export function MisMazos() {
       </div>
 
       <div className="decks-grid">
+        {decks.length === 0 && (
+          <div style={{ textAlign: 'center', color: '#666', gridColumn: '1 / -1', padding: '40px' }}>
+            Aún no tienes mazos. ¡Crea el primero!
+          </div>
+        )}
+        
         {decks.map((deck) => (
           <div 
-          key={deck.id}
-        className="deck-card" 
-             onClick={() => handleDeckClick(deck.id)} 
-      style={{ cursor: 'pointer' }} // Para que el usuario sepa que es clickable
->
-  <div className="deck-card-top">
-    <div className="deck-title-group">
-      <div className="deck-icon"><BookOpen size={20} /></div>
-      <div className="deck-info">
-        <h3>{deck.title}</h3>
-        <p>{deck.description}</p>
-      </div>
-    </div>
-    <div className="deck-actions">
-      <button 
-        className="btn-action" 
-        onClick={(e) => { 
-          e.stopPropagation(); // Evita que se entre al mazo al querer editar
-          openEditModal(deck); 
-        }} 
-        title="Editar"
-      >
-        <Pencil size={16} />
-      </button>
-      <button 
-        className="btn-action btn-delete" 
-        onClick={(e) => { 
-          e.stopPropagation(); // Evita que se entre al mazo al querer eliminar
-          openDeleteModal(deck.id); 
-        }} 
-        title="Eliminar"
-      >
-        <Trash2 size={16} />
-      </button>
-    </div>
-  </div>
-
+            key={deck.id}
+            className="deck-card" 
+            onClick={() => handleDeckClick(deck.id)} 
+            style={{ cursor: 'pointer' }}
+          >
+            <div className="deck-card-top">
+              <div className="deck-title-group">
+                <div className="deck-icon"><BookOpen size={20} /></div>
+                <div className="deck-info">
+                  <h3>{deck.title}</h3>
+                  <p>{deck.description}</p>
+                </div>
+              </div>
+              <div className="deck-actions">
+                <button 
+                  className="btn-action" 
+                  onClick={(e) => { 
+                    e.stopPropagation(); 
+                    openEditModal(deck); 
+                  }} 
+                  title="Editar"
+                >
+                  <Pencil size={16} />
+                </button>
+                <button 
+                  className="btn-action btn-delete" 
+                  onClick={(e) => { 
+                    e.stopPropagation(); 
+                    openDeleteModal(deck.id); 
+                  }} 
+                  title="Eliminar"
+                >
+                  <Trash2 size={16} />
+                </button>
+              </div>
+            </div>
 
             <div className="deck-card-middle">
               <div className="tag-cards">
@@ -160,7 +192,6 @@ export function MisMazos() {
         ))}
       </div>
 
-      {/* --- MODAL CREAR / EDITAR --- */}
       {modalConfig.isOpen && (
         <div className="modal-overlay">
           <div className="modal-content">
@@ -201,7 +232,6 @@ export function MisMazos() {
         </div>
       )}
 
-      {/* --- MODAL DE CONFIRMACIÓN DE ELIMINACIÓN --- */}
       {deleteModalConfig.isOpen && (
         <div className="modal-overlay">
           <div className="modal-content delete-modal">
@@ -219,7 +249,6 @@ export function MisMazos() {
         </div>
       )}
 
-      {/* --- MENSAJE TOAST (Notificación) --- */}
       {toast.visible && (
         <div className="toast-notification">
           <CheckCircle size={18} className="toast-icon" />

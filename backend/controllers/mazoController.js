@@ -85,7 +85,7 @@ const editarMazo = async(req, res) =>{
 
         res.status(200).json({
             status: 200,
-            mensaje: "Mazo actualizdo correctamente.",
+            mensaje: "Mazo actualizado correctamente.",
             mazo: data[0]
         });
 

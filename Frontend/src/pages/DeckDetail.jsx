@@ -1,81 +1,98 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
-import { ArrowLeft, Play, Plus, Upload, X, Sparkles, Layers } from 'lucide-react';
+import { ArrowLeft, Play, Plus, Upload, X, Sparkles, Layers, CheckCircle } from 'lucide-react';
+import { flashcardService } from '../services/flashcardService'; // 👈 Importamos el servicio
 import './DeckDetail.css';
 
 export function DeckDetail() {
   const { id } = useParams();
   const navigate = useNavigate();
 
-  // Estados para las pestañas y el modal de recursos
-  const [activeTab, setActiveTab] = useState('recursos');
+  const [activeTab, setActiveTab] = useState('flashcards'); // Pestaña de flashcards por defecto
   const [isModalOpen, setIsModalOpen] = useState(false);
+  const [isFlashcardModalOpen, setIsFlashcardModalOpen] = useState(false); // Modal para crear tarjeta manual
   
-  // Estados para el formulario de recursos
-  const [resourceUrl, setResourceUrl] = useState('');
+  // Estados para recursos y flashcards reales
   const [resourcesList, setResourcesList] = useState([]); 
-
-  // Estado para la lista de flashcards generadas por la plataforma
   const [flashcardsList, setFlashcardsList] = useState([]);
+  const [currentDeck, setCurrentDeck] = useState({ title: 'Cargando...', description: '' });
 
-  // Simulamos la base de datos temporalmente
-  const mockDecks = [
-    { id: '1', title: 'Ingeniería de Software', description: 'Conceptos fundamentales de ingeniería de software', resources: 0, flashcards: 3 },
-    { id: '2', title: 'Estructuras de Datos', description: 'Listas, árboles, grafos y algoritmos', resources: 0, flashcards: 2 },
-    { id: '3', title: 'Bases de Datos', description: 'SQL, normalización y diseño', resources: 0, flashcards: 1 },
-  ];
+  // Estados para crear una nueva tarjeta manual
+  const [newQuestion, setNewQuestion] = useState('');
+  const [newAnswer, setNewAnswer] = useState('');
+  
+  // Estado para el Toast
+  const [toast, setToast] = useState({ visible: false, message: '' });
 
-  // Buscamos el mazo actual por ID
-  const currentDeck = mockDecks.find(deck => deck.id === id) || {
-    title: 'Mazo no encontrado',
-    description: '',
+  // 1. Cargar las tarjetas cuando entramos a la pantalla
+  useEffect(() => {
+    // Aquí idealmente deberíamos cargar los detalles del mazo desde el backend
+    // Por ahora, simulamos el mazo actual
+    setCurrentDeck({ title: `Mazo #${id}`, description: 'Descripción de tu mazo' });
+    
+    // Cargar las tarjetas reales del backend
+    cargarTarjetas();
+  }, [id]);
+
+  const cargarTarjetas = async () => {
+    try {
+      // Usamos la ruta "estudiar" que nos da las tarjetas de este mazo
+      const data = await flashcardService.obtenerParaRepasar(id);
+      
+      // Mapeamos para asegurar que los nombres de variables coincidan con tu diseño
+      const tarjetasReales = data.map(card => ({
+        id: card.id,
+        question: card.pregunta || card.question,
+        answer: card.respuesta || card.answer
+      }));
+      
+      setFlashcardsList(tarjetasReales);
+    } catch (error) {
+      console.error("Error al cargar tarjetas:", error);
+      showToast('Error al conectar con la base de datos');
+    }
   };
 
-  const handleGoBack = () => {
-    navigate('/app/decks');
+  const showToast = (message) => {
+    setToast({ visible: true, message });
+    setTimeout(() => { setToast({ visible: false, message: '' }); }, 3000);
   };
 
-  const handleStudyMode = () => {
-    navigate(`/app/decks/${id}/study`);
-  };
+  const handleGoBack = () => navigate('/app/decks');
+  const handleStudyMode = () => navigate(`/app/decks/${id}/study`);
 
-  // Función para guardar un enlace de recurso
-  const handleSaveResource = (e) => {
+  // 2. Guardar una tarjeta REAL en el backend
+  const handleSaveFlashcard = async (e) => {
     e.preventDefault();
-    if (!resourceUrl.trim()) return;
+    if (!newQuestion.trim() || !newAnswer.trim()) return;
 
-    const newResource = {
-      id: Date.now(),
-      type: 'url',
-      link: resourceUrl,
-      title: 'Enlace web guardado',
-      date: new Date().toLocaleDateString()
-    };
+    try {
+      await flashcardService.crearFlashcard({
+        mazo_id: parseInt(id),
+        pregunta: newQuestion,
+        respuesta: newAnswer
+      });
 
-    setResourcesList([...resourcesList, newResource]);
-    setResourceUrl('');
-    setIsModalOpen(false);
-  };
-
-  // Función para SIMULAR la generación de flashcards de tu plataforma
-  const handleAutoGenerateFlashcards = () => {
-    const mockGeneratedCards = [
-      { id: 1, question: '¿Qué es un componente en React?', answer: 'Un bloque de código reutilizable que representa una parte de la interfaz de usuario.' },
-      { id: 2, question: '¿Para qué sirve el hook useState?', answer: 'Para añadir y gestionar el estado local dentro de un componente funcional.' },
-      { id: 3, question: '¿Qué es el Virtual DOM?', answer: 'Una copia ligera en memoria del DOM real que React usa para optimizar las actualizaciones.' },
-    ];
-    setFlashcardsList(mockGeneratedCards);
+      showToast('Tarjeta creada exitosamente');
+      setNewQuestion('');
+      setNewAnswer('');
+      setIsFlashcardModalOpen(false);
+      
+      // Recargar la lista de tarjetas
+      cargarTarjetas();
+    } catch (error) {
+      console.error("Error al crear tarjeta:", error);
+      showToast('Hubo un error al guardar la tarjeta');
+    }
   };
 
   return (
     <div className="deck-detail-container">
-      {/* Botón de regreso */}
       <button className="btn-back" onClick={handleGoBack}>
         <ArrowLeft size={16} />
         Volver a Mazos
       </button>
 
-      {/* Cabecera del Mazo */}
       <div className="deck-detail-header">
         <div className="deck-info">
           <h1>{currentDeck.title}</h1>
@@ -87,69 +104,36 @@ export function DeckDetail() {
         </button>
       </div>
 
-      {/* Pestañas (Tabs) con contadores dinámicos */}
       <div className="tabs-container">
-        <button 
-          className={`tab-btn ${activeTab === 'recursos' ? 'active' : ''}`}
-          onClick={() => setActiveTab('recursos')}
-        >
-          Recursos ({resourcesList.length})
-        </button>
         <button 
           className={`tab-btn ${activeTab === 'flashcards' ? 'active' : ''}`}
           onClick={() => setActiveTab('flashcards')}
         >
           Flashcards ({flashcardsList.length})
         </button>
+        <button 
+          className={`tab-btn ${activeTab === 'recursos' ? 'active' : ''}`}
+          onClick={() => setActiveTab('recursos')}
+        >
+          Recursos ({resourcesList.length})
+        </button>
       </div>
 
-      {/* Contenido principal según la pestaña */}
       <div className="tab-content">
         
-        {/* PESTAÑA: RECURSOS */}
-        {activeTab === 'recursos' && (
-          <div className="resources-section">
-            <div className="section-actions">
-              <button className="btn-add" onClick={() => setIsModalOpen(true)}>
-                <Plus size={16} />
-                Añadir Recurso
-              </button>
-            </div>
-
-            {resourcesList.length === 0 ? (
-              <div className="empty-state">
-                <Upload size={48} className="empty-icon" />
-                <h3>No hay recursos todavía</h3>
-                <p>Comienza agregando enlaces (URLs) o subiendo archivos PDF (Máximo 10MB por archivo).</p>
-              </div>
-            ) : (
-              <div className="resources-list">
-                {resourcesList.map((resource) => (
-                  <div key={resource.id} className="resource-card">
-                    <div className="resource-icon">
-                      <Play size={20} /> 
-                    </div>
-                    <div className="resource-details">
-                      <h4>{resource.title}</h4>
-                      <a href={resource.link} target="_blank" rel="noopener noreferrer">
-                        {resource.link}
-                      </a>
-                      <span className="resource-date">Agregado el {resource.date}</span>
-                    </div>
-                  </div>
-                ))}
-              </div>
-            )}
-          </div>
-        )}
-
         {/* PESTAÑA: FLASHCARDS */}
         {activeTab === 'flashcards' && (
           <div className="flashcards-section">
             <div className="section-actions">
-              <button className="btn-add" onClick={handleAutoGenerateFlashcards}>
+              {/* Botón para crear tarjeta manualmente (NUEVO) */}
+              <button className="btn-add" onClick={() => setIsFlashcardModalOpen(true)} style={{ marginRight: '10px' }}>
+                <Plus size={16} />
+                Crear Tarjeta Manual
+              </button>
+              
+              <button className="btn-add" onClick={() => showToast('¡Próximamente! Generación por IA')} style={{ backgroundColor: '#f0e6ff', color: '#6b21a8' }}>
                 <Sparkles size={16} />
-                Generar Flashcards Automáticamente
+                Generar con IA
               </button>
             </div>
 
@@ -157,7 +141,7 @@ export function DeckDetail() {
               <div className="empty-state">
                 <Layers size={48} className="empty-icon" />
                 <h3>Aún no hay flashcards</h3>
-                <p>Sube recursos (enlaces o PDFs) y haz clic en "Generar Flashcards Automáticamente" para que la plataforma cree tus tarjetas de estudio.</p>
+                <p>Crea tu primera tarjeta manualmente o usa la IA para generarlas a partir de tus apuntes.</p>
               </div>
             ) : (
               <div className="flashcards-grid">
@@ -178,51 +162,70 @@ export function DeckDetail() {
             )}
           </div>
         )}
+
+        {/* PESTAÑA: RECURSOS (Mantenida igual por ahora) */}
+        {activeTab === 'recursos' && (
+          <div className="resources-section">
+            <div className="section-actions">
+              <button className="btn-add" onClick={() => setIsModalOpen(true)}>
+                <Plus size={16} /> Añadir Recurso
+              </button>
+            </div>
+            <div className="empty-state">
+              <Upload size={48} className="empty-icon" />
+              <h3>Sección en construcción</h3>
+              <p>Próximamente podrás subir tus PDFs aquí.</p>
+            </div>
+          </div>
+        )}
       </div>
 
-      {/* Modal para Agregar Recurso */}
-      {isModalOpen && (
+      {/* --- MODAL PARA CREAR TARJETA MANUAL --- */}
+      {isFlashcardModalOpen && (
         <div className="modal-overlay">
-          <div className="modal-content resource-modal">
+          <div className="modal-content">
             <div className="modal-header">
-              <h2>Agregar Nuevo Recurso</h2>
-              <p>Agrega una URL o sube un PDF</p>
-              <button className="btn-close" onClick={() => setIsModalOpen(false)}>
+              <h2>Nueva Tarjeta</h2>
+              <button className="btn-close" onClick={() => setIsFlashcardModalOpen(false)}>
                 <X size={20} />
               </button>
             </div>
-
-            <form onSubmit={handleSaveResource}>
+            
+            <form onSubmit={handleSaveFlashcard}>
               <div className="form-group">
-                <label>Mazo destino</label>
-                <select disabled value={currentDeck.title}>
-                  <option>{currentDeck.title}</option>
-                </select>
+                <label>Pregunta (Anverso)</label>
+                <textarea 
+                  placeholder="Ej: ¿Qué es una clave primaria en SQL?" 
+                  value={newQuestion}
+                  onChange={(e) => setNewQuestion(e.target.value)}
+                  rows="2"
+                  autoFocus
+                ></textarea>
               </div>
-
+              
               <div className="form-group">
-                <label>URL (YouTube, artículos, etc.)</label>
-                <input 
-                  type="url" 
-                  placeholder="Pegar URL externa (YouTube, Artículos)..." 
-                  value={resourceUrl}
-                  onChange={(e) => setResourceUrl(e.target.value)}
-                />
+                <label>Respuesta (Reverso)</label>
+                <textarea 
+                  placeholder="Ej: Es un campo único que identifica de forma exclusiva cada registro en una tabla."
+                  value={newAnswer}
+                  onChange={(e) => setNewAnswer(e.target.value)}
+                  rows="3"
+                ></textarea>
               </div>
 
-              <div className="divider-text">O</div>
-
-              <div className="upload-area">
-                <Upload size={24} className="upload-icon" />
-                <p>Arrastra tu PDF aquí o haz clic para buscar</p>
-                <span>Solo formato .pdf hasta 10MB</span>
-              </div>
-
-              <button type="submit" className="btn-submit-deck mt-4">
-                Guardar Recurso
+              <button type="submit" className="btn-submit-deck">
+                Guardar Tarjeta
               </button>
             </form>
           </div>
+        </div>
+      )}
+
+      {/* --- MENSAJE TOAST --- */}
+      {toast.visible && (
+        <div className="toast-notification">
+          <CheckCircle size={18} className="toast-icon" />
+          <span>{toast.message}</span>
         </div>
       )}
     </div>

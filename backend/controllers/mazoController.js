@@ -69,7 +69,56 @@ const obtenerMazos = async (req, res) => {
        }
 };
 
+//funcion editar un mazo existente
+const editarMazo = async(req, res) =>{
+    try{
+        const {id} = req.params; //saca del ID del mazo de la URL
+        const{titulo, descripcion} = req.body;
+
+        const {data, error} = await supabase
+        .from('mazos')
+        .update({nombre: titulo, descripcion: descripcion})
+        .eq('id', id) //Busca el mazo por su ID
+        .select();
+
+        if(error) throw error;
+
+        res.status(200).json({
+            status: 200,
+            mensaje: "Mazo actualizdo correctamente.",
+            mazo: data[0]
+        });
+
+    } catch(error){
+        console.error("Error al editar el mazo: ", error.message);
+        res.status(500).json({error: error.message});
+    }
+};
+
+//Funcion para eliminar un mazo
+const eliminarMazo = async (req, res) => {
+    try{
+        const {id} = req.params;
+
+        const{error} = await supabase
+        .from('mazos')
+        .delete()
+        .eq('id', id);
+
+        if(error) throw error;
+
+        res.status(200).json({
+            status:200,
+            mensaje: "Mazo eliminado con exito"
+        });
+
+    } catch(error){
+        console.error("Error al eliminar el mazo: ", error.message);
+        res.status(500).json({error: error.message});
+    }
+};
+
 
 
 //exportamos la funcion para que las rutas la puedan usar
-module.exports = {crearMazo, obtenerMazos};
+module.exports = {crearMazo, obtenerMazos, editarMazo, eliminarMazo};

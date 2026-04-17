@@ -59,6 +59,10 @@ app.use('/api/auth', authRoutes);
 const flashcardRoutes = require('./routes/flashcardRoutes');
 app.use('/api/flashcards',flashcardRoutes);
 
+//Ruta de los recursos (PDF / IMAGENES)
+const recursoRoutes = require('./routes/recursosRoutes');
+app.use('/api/recursos', recursoRoutes);
+
 //puerto del .env o del 3000
 const PORT = process.env.PORT || 3000;
 app.listen(PORT, () => {

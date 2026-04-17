@@ -14,13 +14,19 @@ const express = require('express');
 const router = express.Router();
 
 //importamos la funcion crearMazo de controllers
-const{crearMazo, obtenerMazos} = require('../controllers/mazoController');
+const{crearMazo, obtenerMazos, ediarMazo, eliminarMazo, editarMazo} = require('../controllers/mazoController');
 
 //cuando alguien haga una peticion POST, se ejecute crearMazo
 router.post('/', crearMazo);
 
 //Puerta GET: para leer los mazos existentes en las tablas
 router.get('/', obtenerMazos);
+
+//Puerta PUT para editar un mazo
+router.put('/:id', editarMazo);
+
+//Puerta DELETE para borrar un mazo
+router.delete('/:id', eliminarMazo);
 
 //exportamos el Router para que el principal (server.js) lo use
 module.exports = router;

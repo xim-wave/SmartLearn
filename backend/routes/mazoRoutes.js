@@ -14,7 +14,7 @@ const express = require('express');
 const router = express.Router();
 
 //importamos la funcion crearMazo de controllers
-const{crearMazo, obtenerMazos, editarMazo, eliminarMazo, editarMazo} = require('../controllers/mazoController');
+const { crearMazo, obtenerMazos, editarMazo, eliminarMazo } = require('../controllers/mazoController');
 
 //cuando alguien haga una peticion POST, se ejecute crearMazo
 router.post('/', crearMazo);

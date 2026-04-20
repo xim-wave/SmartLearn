@@ -78,7 +78,7 @@ const editarMazo = async(req, res) =>{
         const {data, error} = await supabase
         .from('mazos')
         .update({nombre: titulo, descripcion: descripcion})
-        .eq('id', id) //Busca el mazo por su ID
+        .eq('mazo_id', id) //Busca el mazo por su ID
         .select();
 
         if(error) throw error;
@@ -103,7 +103,7 @@ const eliminarMazo = async (req, res) => {
         const{error} = await supabase
         .from('mazos')
         .delete()
-        .eq('id', id);
+        .eq('mazo_id', id);
 
         if(error) throw error;
 

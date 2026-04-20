@@ -70,33 +70,36 @@ export function MisMazos() {
   };
 
   // 3. Modificamos el guardado para que envíe el mazo a Supabase
+  // 3. Función actualizada para CREAR y EDITAR en base de datos
   const handleSaveDeck = async (e) => {
     e.preventDefault();
     if (!deckName.trim()) return;
 
     if (modalConfig.mode === 'create') {
       try {
-        // Le mandamos los datos al backend
         await mazoService.crearMazo({
           nombre: deckName,
           descripcion: deckDesc || 'Sin descripción'
         });
-        
-        // Volvemos a pedir la lista actualizada a la base de datos
         await cargarMazos();
-        showToast('Mazo guardado en la base de datos exitosamente');
+        showToast('Mazo creado en la base de datos');
       } catch (error) {
         console.error("Error al crear mazo:", error);
         showToast('Error al guardar el mazo');
       }
     } else {
-      // Modo edición (por ahora solo visual en frontend hasta tener la ruta PUT en backend)
-      setDecks(decks.map(deck => 
-        deck.id === modalConfig.deckId 
-          ? { ...deck, title: deckName, description: deckDesc } 
-          : deck
-      ));
-      showToast('Mazo editado localmente');
+      // 👇 AQUÍ CONECTAMOS LA EDICIÓN REAL
+      try {
+        await mazoService.editarMazo(modalConfig.deckId, {
+          nombre: deckName,
+          descripcion: deckDesc || 'Sin descripción'
+        });
+        await cargarMazos(); // Recargamos la lista desde el backend
+        showToast('Mazo actualizado exitosamente');
+      } catch (error) {
+        console.error("Error al editar mazo:", error);
+        showToast('Error al actualizar el mazo');
+      }
     }
 
     setModalConfig({ isOpen: false, mode: 'create', deckId: null });
@@ -106,11 +109,18 @@ export function MisMazos() {
     setDeleteModalConfig({ isOpen: true, deckId: id });
   };
 
-  const confirmDelete = () => {
-    // Eliminación (por ahora solo visual en frontend hasta tener la ruta DELETE en backend)
-    setDecks(decks.filter(deck => deck.id !== deleteModalConfig.deckId));
-    setDeleteModalConfig({ isOpen: false, deckId: null });
-    showToast('Mazo eliminado localmente');
+  // 4. Función actualizada para ELIMINAR en base de datos
+  const confirmDelete = async () => {
+    try {
+      // 👇 AQUÍ CONECTAMOS LA ELIMINACIÓN REAL
+      await mazoService.eliminarMazo(deleteModalConfig.deckId);
+      await cargarMazos(); // Recargamos la lista desde el backend
+      setDeleteModalConfig({ isOpen: false, deckId: null });
+      showToast('Mazo eliminado para siempre 🗑️');
+    } catch (error) {
+      console.error("Error al eliminar mazo:", error);
+      showToast('Error al eliminar el mazo');
+    }
   };
 
   return (

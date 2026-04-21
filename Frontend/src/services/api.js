@@ -1,22 +1,20 @@
 import axios from 'axios';
 
-// Creamos una instancia de axios con la configuración base
+// Creamos la conexión base
 const api = axios.create({
-  // Aquí pondremos la URL donde esté corriendo el backend de tu equipo
-  // Por ahora pongo una de ejemplo (localhost:3000), pero luego la ajustamos
-  baseURL: 'http://localhost:3000/api', 
-  headers: {
-    'Content-Type': 'application/json'
-  }
+  baseURL: 'http://localhost:3000/api', // Cambia esto si tu backend usa otro puerto o ruta
 });
 
-// Interceptor: Esto intercepta todas las peticiones ANTES de que salgan.
-// Es el lugar perfecto para inyectar el token de seguridad si el usuario ya inició sesión.
+// 👇 ESTA ES LA MAGIA 👇
+// Le decimos a Axios que, antes de enviar CUALQUIER petición, le pegue el gafete (Token)
 api.interceptors.request.use(
   (config) => {
-    // Si usas un token de autenticación (JWT), lo leemos del almacenamiento local
-    const token = localStorage.getItem('token');
+    // Aquí buscamos el token que se guardó cuando hiciste Login. 
+    // NOTA: Si en tu Login lo guardaste con otro nombre (ej. 'accessToken' o 'jwt'), cámbialo aquí abajo.
+    const token = localStorage.getItem('token'); 
+    
     if (token) {
+      // Si tenemos el token, se lo ponemos en la cabecera (Header) de Autorización
       config.headers.Authorization = `Bearer ${token}`;
     }
     return config;

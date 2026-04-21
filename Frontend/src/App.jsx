@@ -3,8 +3,11 @@ import { DeckDetail } from './pages/DeckDetail';
 import { MisMazos } from './pages/MisMazos';
 import { StudyDeck } from './pages/StudyDeck';
 
-// Importamos el Layout que acabas de crear
+// Importamos el Layout
 import { Layout } from './components/Layout';
+
+// 👇 Importamos a nuestro cadenero de seguridad
+import { ProtectedRoute } from './components/ProtectedRoute';
 
 // Importamos tus pantallas
 import Login from './pages/Login';
@@ -14,21 +17,21 @@ import Dashboard from './pages/Dashboard';
 function App() {
   return (
     <Routes>
-      {/* Rutas públicas */}
+      {/* Rutas públicas (No necesitan gafete) */}
       <Route path="/" element={<Login />} />
       <Route path="/registro" element={<Registro />} />
 
-      {/* Rutas con la barra lateral */}
-      <Route path="/app" element={<Layout />}>
-        {/* Esta línea hace que funcione en /app */}
+      {/* Rutas Privadas (Protegidas por el cadenero) */}
+      {/* 👇 Aquí envolvemos el Layout con el ProtectedRoute */}
+      <Route path="/app" element={
+        <ProtectedRoute>
+          <Layout />
+        </ProtectedRoute>
+      }>
+        {/* Todo lo que esté aquí adentro ya está protegido automáticamente 🛡️ */}
         <Route index element={<Dashboard />} /> 
-        
-        {/* Esta línea hace que funcione específicamente en /app/dashboard */}
         <Route path="dashboard" element={<Dashboard />} />
-        
         <Route path="decks" element={<MisMazos />} /> 
-        
-        {/* Ruta dinámica corregida (sin el /app/ al principio porque ya está anidada) */}
         <Route path="decks/:id" element={<DeckDetail />} />
         <Route path="decks/:id/study" element={<StudyDeck />} />
       </Route>

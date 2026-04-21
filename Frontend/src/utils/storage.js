@@ -48,6 +48,7 @@ export const storage = {
 
   clearUser() {
     localStorage.removeItem(STORAGE_KEYS.USER);
+    localStorage.removeItem('token');
   },
 
   // --- Initialize with mock data (Datos de prueba iniciales) ---

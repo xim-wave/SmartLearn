@@ -1,9 +1,8 @@
 import { useState, useEffect } from "react";
 import { Outlet, Link, useLocation, useNavigate } from "react-router-dom";
 import { Home, BookOpen, LogOut, GraduationCap, Menu, X, ChevronRight } from "lucide-react";
-// Corregimos la ruta basándonos en la estructura de tus carpetas
 import { storage } from "../utils/storage";
-import "./Layout.css"; // Importamos nuestro nuevo CSS
+import "./Layout.css"; 
 
 const navItems = [
   { icon: Home, label: "Dashboard", path: "/app" },
@@ -14,19 +13,20 @@ export function Layout() {
   const location = useLocation();
   const navigate = useNavigate();
   const [sidebarOpen, setSidebarOpen] = useState(false);
-  const [user, setUser] = useState(null); // Eliminamos el TypeScript
+  const [user, setUser] = useState(null); 
 
   useEffect(() => {
     const storedUser = storage.getUser();
     setUser(storedUser);
   }, []);
 
+  // 👇 Aquí está la magia de tu botón
   const handleLogout = () => {
-    storage.clearUser();
-    navigate("/");
+    storage.clearUser(); // Esto borra los datos usando tu archivo storage.js
+    navigate("/");       // Esto te manda de regreso al Login
   };
 
-  const isActive = (path) => { // Eliminamos el TypeScript
+  const isActive = (path) => { 
     if (path === "/app") return location.pathname === "/app";
     return location.pathname.startsWith(path);
   };
@@ -90,7 +90,7 @@ export function Layout() {
               </div>
             </div>
           )}
-          {/* Reemplazamos el <Button> de UI por un botón normal */}
+          {/* 👇 Tu botón ya tiene el onClick={handleLogout} */}
           <button className="btn-logout" onClick={handleLogout}>
             <LogOut size={16} />
             <span>Cerrar sesión</span>

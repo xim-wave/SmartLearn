@@ -26,11 +26,25 @@ export function MisMazos() {
   // Función que va a la base de datos a traer los mazos reales
   const cargarMazos = async () => {
     try {
-      const data = await mazoService.obtenerMazos();
+      const respuesta = await mazoService.obtenerMazos();
       
-      // Mapeamos los datos por si la base de datos usa nombres en español
-      // (ej. "nombre" en lugar de "title")
-      const mazosReales = data.map(mazo => ({
+      // 🕵️‍♀️ EL CHISMOSO: Vamos a imprimir en consola exactamente qué nos mandó el backend
+      console.log("Respuesta del backend:", respuesta);
+
+      // Extraemos la lista real de mazos (Axios suele meter todo dentro de una propiedad .data)
+      // Si respuesta ya es un arreglo, lo usamos. Si no, buscamos adentro de respuesta.data
+      const listaDeMazos = Array.isArray(respuesta) 
+        ? respuesta 
+        : (respuesta.data || respuesta.mazos || []);
+
+      // Si por alguna razón sigue sin ser un arreglo, detenemos todo para que no explote el .map()
+      if (!Array.isArray(listaDeMazos)) {
+        console.error("¡Peligro! Lo que llegó no es una lista:", listaDeMazos);
+        showToast('Formato de datos incorrecto del servidor');
+        return; 
+      }
+      
+      const mazosReales = listaDeMazos.map(mazo => ({
         id: mazo.id,
         title: mazo.nombre || mazo.title || 'Sin título',
         description: mazo.descripcion || mazo.description || 'Sin descripción',

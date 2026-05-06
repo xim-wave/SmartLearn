@@ -45,7 +45,7 @@ export function MisMazos() {
       }
       
       const mazosReales = listaDeMazos.map(mazo => ({
-        id: mazo.id,
+        id: mazo.mazo_id || mazo.id, // 👈 AGREGAMOS mazo.mazo_id AQUÍ
         title: mazo.nombre || mazo.title || 'Sin título',
         description: mazo.descripcion || mazo.description || 'Sin descripción',
         totalCards: mazo.totalCards || 0,

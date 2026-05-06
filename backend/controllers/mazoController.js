@@ -75,8 +75,7 @@ const editarMazo = async(req, res) => {
         const { data, error } = await req.supabaseClient
             .from('mazos')
             .update({ nombre: nombreFinal, descripcion: descripcion })
-            // 🛡️ ESCUDO 2: Supabase por defecto llama a la columna de ID solo "id", no "mazo_id".
-            .eq('id', id) 
+            .eq('mazo_id', id) // 👈 REGRESAMOS ESTO A 'mazo_id'
             .select();
 
         if (error) throw error;
@@ -101,8 +100,7 @@ const eliminarMazo = async (req, res) => {
         const { error } = await req.supabaseClient
             .from('mazos')
             .delete()
-            // 🛡️ ESCUDO 2: Cambiado de 'mazo_id' a 'id'
-            .eq('id', id);
+            .eq('mazo_id', id); // 👈 REGRESAMOS ESTO A 'mazo_id'
 
         if (error) throw error;
 

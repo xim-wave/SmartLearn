@@ -17,7 +17,7 @@ const crearMazo = async(req, res) =>{
     try{
         //req es para que el front haga solicitudes
         //req.body es la "caja" de los datos del nuevo mazo
-        const{titulo, descripcion} = req.body;
+        const{nombre, descripcion} = req.body;
 
         //extrae el ID del usuario directamente del cliente autenticado
         const{data: {user}} = await req.supabaseClient.auth.getUser();
@@ -28,7 +28,7 @@ const crearMazo = async(req, res) =>{
         //y nos devuelve el mazo que acaba de guardar
         const {data, error} = await req.supabaseClient
         .from('mazos')
-        .insert([{nombre: titulo, descripcion:descripcion, usuario_id: usuario_id}])
+        .insert([{nombre: nombre, descripcion:descripcion, usuario_id: usuario_id}])
         .select();
 
         //aviso de error en DB

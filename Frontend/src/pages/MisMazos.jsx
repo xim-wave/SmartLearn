@@ -92,7 +92,7 @@ export function MisMazos() {
     if (modalConfig.mode === 'create') {
       try {
         await mazoService.crearMazo({
-          nombre: deckName,
+          titulo: deckName, // 👈 CAMBIADO: Antes decía "nombre"
           descripcion: deckDesc || 'Sin descripción'
         });
         await cargarMazos();
@@ -102,20 +102,18 @@ export function MisMazos() {
         showToast('Error al guardar el mazo');
       }
     } else {
-      // 👇 AQUÍ CONECTAMOS LA EDICIÓN REAL
       try {
         await mazoService.editarMazo(modalConfig.deckId, {
-          nombre: deckName,
+          titulo: deckName, // 👈 CAMBIADO: Antes decía "nombre"
           descripcion: deckDesc || 'Sin descripción'
         });
-        await cargarMazos(); // Recargamos la lista desde el backend
+        await cargarMazos();
         showToast('Mazo actualizado exitosamente');
       } catch (error) {
         console.error("Error al editar mazo:", error);
         showToast('Error al actualizar el mazo');
       }
     }
-
     setModalConfig({ isOpen: false, mode: 'create', deckId: null });
   };
 

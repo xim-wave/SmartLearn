@@ -6,7 +6,7 @@
 =================================================================
 */
 
-const supabase = require('../services/supabaseClient');
+
 
 const agregarRecursoAMazo = async(req, res) =>{
     try{
@@ -18,7 +18,7 @@ const agregarRecursoAMazo = async(req, res) =>{
 
         //Subir al bucket supabase
         const nombreArchivo = `${Date.now()}_${req.file.originalname}`;
-        const {data: uploadData, error: uploadError} = await supabase.storage
+        const {data: uploadData, error: uploadError} = await req.supabaseClient.storage
         .from('recursos-estudio')
         .upload(nombreArchivo, req.file.buffer,{
             contentType: req.file.mimetype
@@ -27,7 +27,7 @@ const agregarRecursoAMazo = async(req, res) =>{
         if(uploadError) throw uploadError;
 
         //toma la URL publica
-        const{data: {publicUrl} } = supabase.storage
+        const{data: {publicUrl} } = req.supabaseClient.storage
         .from('recursos-estudio')
         .getPublicUrl(nombreArchivo);
 
@@ -36,7 +36,7 @@ const agregarRecursoAMazo = async(req, res) =>{
         const tipoCalculado = req.file.mimetype === 'application/pdf' ? 'PDF' : 'Imagen';
 
         //guardar en tabla 'recursos' vinculandolo al mazo
-        const {data, error} = await supabase
+        const {data, error} = await req.supabaseClient
         .from('recursos')
         .insert([{
             mazo_id: mazo_id,

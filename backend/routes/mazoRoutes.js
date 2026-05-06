@@ -13,20 +13,23 @@ const express = require('express');
 //router dedicado a organizar las rutas de los mazos
 const router = express.Router();
 
+//importamos el middleware de autenticacion
+const verificarTokenSupabase = require('../middlewares/authMiddleware');
+
 //importamos la funcion crearMazo de controllers
 const { crearMazo, obtenerMazos, editarMazo, eliminarMazo } = require('../controllers/mazoController');
 
 //cuando alguien haga una peticion POST, se ejecute crearMazo
-router.post('/', crearMazo);
+router.post('/', verificarTokenSupabase, crearMazo);
 
 //Puerta GET: para leer los mazos existentes en las tablas
-router.get('/', obtenerMazos);
+router.get('/', verificarTokenSupabase, obtenerMazos);
 
 //Puerta PUT para editar un mazo
-router.put('/:id', editarMazo);
+router.put('/:id', verificarTokenSupabase, editarMazo);
 
 //Puerta DELETE para borrar un mazo
-router.delete('/:id', eliminarMazo);
+router.delete('/:id',verificarTokenSupabase, eliminarMazo);
 
 //exportamos el Router para que el principal (server.js) lo use
 module.exports = router;

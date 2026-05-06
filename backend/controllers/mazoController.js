@@ -22,7 +22,7 @@ const crearMazo = async(req, res) =>{
 
         //nos comunicamos con supabase para instertar una nueva fila en la tabla de mazos
         //y nos devuelve el mazo que acaba de guardar
-        const {data, error} = await supabase
+        const {data, error} = await req.supabaseClient
         .from('mazos')
         .insert([{nombre: titulo, descripcion:descripcion, usuario_id: usuario_id}])
         .select();
@@ -50,7 +50,7 @@ const crearMazo = async(req, res) =>{
 //funcion para obtener todos los mazos
 const obtenerMazos = async (req, res) => {
       try {
-          const {data, error} = await supabase
+          const {data, error} = await req.supabaseClient
               .from('mazos')
               .select('*');
 
@@ -75,7 +75,7 @@ const editarMazo = async(req, res) =>{
         const {id} = req.params; //saca del ID del mazo de la URL
         const{titulo, descripcion} = req.body;
 
-        const {data, error} = await supabase
+        const {data, error} = await req.supabaseClient
         .from('mazos')
         .update({nombre: titulo, descripcion: descripcion})
         .eq('mazo_id', id) //Busca el mazo por su ID
@@ -100,7 +100,7 @@ const eliminarMazo = async (req, res) => {
     try{
         const {id} = req.params;
 
-        const{error} = await supabase
+        const{error} = await req.supabaseClient
         .from('mazos')
         .delete()
         .eq('mazo_id', id);

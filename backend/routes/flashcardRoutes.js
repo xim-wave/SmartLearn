@@ -9,16 +9,17 @@
 
 const express = require('express');
 const router = express.Router();
+const verificarTokenSupabase = require('../middlewares/authMiddleware');
 const{crearFlashcard, repasarFlashcard, obtenerTarjetasParaRepasar} = require('../controllers/flashcardController');
 
 //puerta POST para crear la tarjeta
-router.post('/',crearFlashcard);
+router.post('/',verificarTokenSupabase, crearFlashcard);
 
 //Puerta PUT para repasar / actualizar una tarjeta existente
-router.put('/:id/repasar',repasarFlashcard);
+router.put('/:id/repasar', verificarTokenSupabase, repasarFlashcard);
 
 //Puerta GET para pedir las tarjetas que tocan estudiar hoy de un mazo especifico
-router.get('/estudiar/:mazo_id', obtenerTarjetasParaRepasar);
+router.get('/estudiar/:mazo_id', verificarTokenSupabase, obtenerTarjetasParaRepasar);
 
 //exportar funcion
 module.exports = router;

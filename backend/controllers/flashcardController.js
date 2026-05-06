@@ -8,7 +8,7 @@
 ==============================================================
 */
 
-const supabase = require('../services/supabaseClient');
+const supabaseClient = require('../services/supabaseClient');
 
 //importamos el algoritmo
 const {calcularSM2} = require ('../utils/sm2');
@@ -23,7 +23,7 @@ const crearFlashcard= async(req, res) =>{
         const fechaHoy = new Date().toISOString().split('T')[0];
 
         //manda todo a la tabla flashcards de DB
-        const{data, error} = await supabase
+        const{data, error} = await req.supabaseClient
         .from('flashcards')
         .insert([{
             mazo_id: mazo_id,
@@ -58,7 +58,7 @@ const repasarFlashcard = async(req, res) =>{
         const {calidad} = req.body;
 
         //buscar tarjeta actual
-        const{data: tarjetaVieja, error: errorBusqueda} = await supabase
+        const{data: tarjetaVieja, error: errorBusqueda} = await req.supabaseClient
         .from('flashcards')
         .select('repeticiones, intervalo_dias, factor_facilidad')
         .eq('flashcard_id', id)
@@ -80,7 +80,7 @@ const repasarFlashcard = async(req, res) =>{
         const proximaRevisionString = fechaProxima.toISOString().split('T')[0];
 
         //guarda la actualizacion
-        const {data: tarjetaActualizada, error: errorActualizacion} = await supabase
+        const {data: tarjetaActualizada, error: errorActualizacion} = await req.supabaseClient
         .from('flashcards')
         .update({
             repeticiones: nuevosValores.repeticiones,
@@ -110,7 +110,7 @@ const obtenerTarjetasParaRepasar = async(req, res) => {
         const {mazo_id} = req.params;
         const fechaHoy = new Date().toISOString().split('T')[0];
 
-        const {data, error} = await supabase
+        const {data, error} = await req.supabaseClient
         .from('flashcards')
         .select('*')
         .eq('mazo_id', mazo_id)

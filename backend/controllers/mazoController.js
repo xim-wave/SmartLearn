@@ -17,7 +17,11 @@ const crearMazo = async(req, res) =>{
     try{
         //req es para que el front haga solicitudes
         //req.body es la "caja" de los datos del nuevo mazo
-        const{titulo, descripcion, usuario_id} = req.body;
+        const{titulo, descripcion} = req.body;
+
+        //extrae el ID del usuario directamente del cliente autenticado
+        const{data: {user}} = await req.supabaseClient.auth.getUser();
+        const usuario_id = user.id;
 
 
         //nos comunicamos con supabase para instertar una nueva fila en la tabla de mazos

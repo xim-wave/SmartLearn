@@ -26,9 +26,8 @@ export function DeckDetail() {
 
   // 1. Cargar las tarjetas cuando entramos a la pantalla
   useEffect(() => {
-    // Aquí idealmente deberíamos cargar los detalles del mazo desde el backend
-    // Por ahora, simulamos el mazo actual
-    setCurrentDeck({ title: `Mazo #${id}`, description: 'Descripción de tu mazo' });
+    // Por ahora simulamos el título del mazo
+    setCurrentDeck({ title: `Mazo de Estudio`, description: 'Tus tarjetas para repasar' });
     
     // Cargar las tarjetas reales del backend
     cargarTarjetas();
@@ -36,17 +35,21 @@ export function DeckDetail() {
 
   const cargarTarjetas = async () => {
     try {
-      // Usamos la ruta "estudiar" que nos da las tarjetas de este mazo
+      // Usamos la ruta que nos da las tarjetas de este mazo
       const data = await flashcardService.obtenerParaRepasar(id);
       
-      // Mapeamos para asegurar que los nombres de variables coincidan con tu diseño
-      const tarjetasReales = data.map(card => ({
-        id: card.id,
-        question: card.pregunta || card.question,
-        answer: card.respuesta || card.answer
-      }));
+      // Verificamos si hay flashcards en la respuesta y las mapeamos
+      if (data && data.flashcards) {
+        const tarjetasReales = data.flashcards.map(card => ({
+          id: card.flashcard_id || card.id,
+          question: card.pregunta || card.question,
+          answer: card.respuesta || card.answer
+        }));
+        setFlashcardsList(tarjetasReales);
+      } else {
+        setFlashcardsList([]);
+      }
       
-      setFlashcardsList(tarjetasReales);
     } catch (error) {
       console.error("Error al cargar tarjetas:", error);
       showToast('Error al conectar con la base de datos');
@@ -78,7 +81,7 @@ export function DeckDetail() {
       setNewAnswer('');
       setIsFlashcardModalOpen(false);
       
-      // Recargar la lista de tarjetas
+      // Recargar la lista de tarjetas para que aparezca la nueva
       cargarTarjetas();
     } catch (error) {
       console.error("Error al crear tarjeta:", error);
@@ -125,7 +128,7 @@ export function DeckDetail() {
         {activeTab === 'flashcards' && (
           <div className="flashcards-section">
             <div className="section-actions">
-              {/* Botón para crear tarjeta manualmente (NUEVO) */}
+              {/* Botón para crear tarjeta manualmente */}
               <button className="btn-add" onClick={() => setIsFlashcardModalOpen(true)} style={{ marginRight: '10px' }}>
                 <Plus size={16} />
                 Crear Tarjeta Manual
@@ -163,7 +166,7 @@ export function DeckDetail() {
           </div>
         )}
 
-        {/* PESTAÑA: RECURSOS (Mantenida igual por ahora) */}
+        {/* PESTAÑA: RECURSOS */}
         {activeTab === 'recursos' && (
           <div className="resources-section">
             <div className="section-actions">

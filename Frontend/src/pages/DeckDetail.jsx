@@ -71,7 +71,7 @@ export function DeckDetail() {
 
     try {
       await flashcardService.crearFlashcard({
-        mazo_id: parseInt(id),
+        mazo_id: id, // ✅ Listo, ahora pasamos el UUID original
         pregunta: newQuestion,
         respuesta: newAnswer
       });

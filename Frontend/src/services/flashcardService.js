@@ -114,6 +114,25 @@ export const flashcardService = {
     }
   },
 
+  // En tu flashcardService.js, agrega esto junto a obtenerRecursos:
+eliminarRecurso: async (recursoId) => {
+  try {
+    const token = localStorage.getItem('token');
+    const response = await fetch(`http://localhost:3000/api/recursos/${recursoId}`, {
+      method: 'DELETE',
+      headers: {
+        'Authorization': `Bearer ${token}`
+      }
+    });
+
+    if (!response.ok) throw new Error('Error al eliminar el recurso');
+    return await response.json();
+  } catch (error) {
+    console.error("Error en eliminarRecurso:", error);
+    throw error;
+  }
+},
+
   // En flashcardService.js
 obtenerRecursos: async (mazoId) => {
   try {

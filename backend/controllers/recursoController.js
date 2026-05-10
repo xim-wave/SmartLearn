@@ -84,4 +84,43 @@ const obtenerRecursosPorMazo = async (req, res) => {
     }
 };
 
-module.exports = { agregarRecursoAMazo, obtenerRecursosPorMazo };
+// --- NUEVA FUNCIÓN PARA ELIMINAR UN RECURSO ---
+const eliminarRecurso = async (req, res) => {
+    try {
+        const { recurso_id } = req.params;
+
+        // Opcional (pero muy profesional): Obtener el recurso antes de borrarlo 
+        // para también borrar el archivo físico del bucket de Supabase
+        const { data: recursoInfo, error: fetchError } = await supabaseAdmin
+            .from('recursos')
+            .select('url_o_ruta')
+            .eq('recurso_id', recurso_id)
+            .single();
+
+        if (!fetchError && recursoInfo) {
+            // Extraemos el nombre exacto del archivo desde la URL para borrarlo del bucket
+            const urlParts = recursoInfo.url_o_ruta.split('/');
+            const nombreArchivoEnBucket = urlParts[urlParts.length - 1];
+            
+            await supabaseAdmin.storage
+                .from('recursos-estudio')
+                .remove([nombreArchivoEnBucket]);
+        }
+
+        // Ahora sí, lo borramos de la base de datos
+        const { error } = await supabaseAdmin
+            .from('recursos')
+            .delete()
+            .eq('recurso_id', recurso_id);
+
+        if (error) throw error;
+
+        res.status(200).json({ mensaje: 'Recurso eliminado correctamente' });
+
+    } catch (error) {
+        console.error("Error al eliminar el recurso:", error.message);
+        res.status(500).json({ error: error.message });
+    }
+};
+
+module.exports = { agregarRecursoAMazo, obtenerRecursosPorMazo, eliminarRecurso };

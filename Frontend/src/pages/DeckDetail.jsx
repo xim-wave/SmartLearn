@@ -170,6 +170,21 @@ export function DeckDetail() {
     }
   };
 
+  const handleEliminarRecurso = async (recurso_id) => {
+  if (window.confirm("¿Estás seguro de que quieres borrar este documento?")) {
+    try {
+      await flashcardService.eliminarRecurso(recurso_id);
+      
+      // Actualizamos la pantalla sacando el recurso borrado de la lista
+      setRecursos(prev => prev.filter(rec => rec.recurso_id !== recurso_id));
+      
+      showToast('Documento eliminado correctamente');
+    } catch (error) {
+      showToast("No se pudo eliminar el documento");
+    }
+  }
+};
+
   return (
     <div className="deck-detail-container">
       <button className="btn-back" onClick={handleGoBack}>
@@ -356,15 +371,28 @@ export function DeckDetail() {
                         </div>
                       </div>
                       
-                      <a 
-                        href={recurso.url_o_ruta} 
-                        target="_blank" 
-                        rel="noopener noreferrer"
-                        className="bg-blue-500 text-white px-3 py-1 rounded hover:bg-blue-600 text-sm"
-                        style={{ backgroundColor: '#3b82f6', color: 'white', padding: '0.25rem 0.75rem', borderRadius: '0.25rem', textDecoration: 'none', fontSize: '0.875rem' }}
-                      >
-                        Ver Archivo
-                      </a>
+                      {/* --- AQUÍ EMPIEZA LA MAGIA DE LOS BOTONES --- */}
+                      <div style={{ display: 'flex', gap: '8px', alignItems: 'center' }}>
+                        <a 
+                          href={recurso.url_o_ruta} 
+                          target="_blank" 
+                          rel="noopener noreferrer"
+                          className="bg-blue-500 text-white px-3 py-1 rounded hover:bg-blue-600 text-sm"
+                          style={{ backgroundColor: '#3b82f6', color: 'white', padding: '0.25rem 0.75rem', borderRadius: '0.25rem', textDecoration: 'none', fontSize: '0.875rem' }}
+                        >
+                          Ver Archivo
+                        </a>
+                        
+                        <button 
+                          onClick={() => handleEliminarRecurso(recurso.recurso_id)}
+                          style={{ background: 'none', border: 'none', color: '#EF4444', cursor: 'pointer', padding: '0.25rem', display: 'flex', alignItems: 'center', justifyContent: 'center' }}
+                          title="Eliminar recurso"
+                        >
+                          <Trash2 size={20} />
+                        </button>
+                      </div>
+                      {/* --- AQUÍ TERMINA LA MAGIA --- */}
+                      
                     </div>
                   ))}
                 </div>

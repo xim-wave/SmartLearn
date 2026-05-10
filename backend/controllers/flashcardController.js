@@ -130,4 +130,86 @@ const obtenerTarjetasParaRepasar = async(req, res) => {
     }
 };
 
-module.exports = {crearFlashcard, repasarFlashcard, obtenerTarjetasParaRepasar};
+
+// ==========================================
+// NUEVAS FUNCIONES: Administrar Tarjetas
+// ==========================================
+
+// Función para obtener TODAS las tarjetas de un mazo (sin importar la fecha)
+const obtenerTodasLasFlashcards = async (req, res) => {
+    try {
+        const { mazo_id } = req.params;
+
+        const { data, error } = await req.supabaseClient
+            .from('flashcards')
+            .select('*')
+            .eq('mazo_id', mazo_id)
+
+        if (error) throw error;
+
+        res.status(200).json({
+            status: 200,
+            flashcards: data
+        });
+    } catch (error) {
+        console.error("Error al obtener todas las tarjetas: ", error.message);
+        res.status(500).json({ error: error.message });
+    }
+};
+
+// Función para editar la pregunta o respuesta de una tarjeta
+const editarFlashcard = async (req, res) => {
+    try {
+        const { id } = req.params;
+        const { pregunta, respuesta } = req.body;
+
+        const { data, error } = await req.supabaseClient
+            .from('flashcards')
+            .update({ pregunta, respuesta })
+            .eq('flashcard_id', id)
+            .select();
+
+        if (error) throw error;
+
+        res.status(200).json({
+            status: 200,
+            mensaje: "Tarjeta actualizada correctamente",
+            flashcard: data[0]
+        });
+    } catch (error) {
+        console.error("Error al editar la tarjeta: ", error.message);
+        res.status(500).json({ error: error.message });
+    }
+};
+
+// Función para eliminar una tarjeta
+const eliminarFlashcard = async (req, res) => {
+    try {
+        const { id } = req.params;
+
+        const { error } = await req.supabaseClient
+            .from('flashcards')
+            .delete()
+            .eq('flashcard_id', id);
+
+        if (error) throw error;
+
+        res.status(200).json({
+            status: 200,
+            mensaje: "Tarjeta eliminada con éxito"
+        });
+    } catch (error) {
+        console.error("Error al eliminar la tarjeta: ", error.message);
+        res.status(500).json({ error: error.message });
+    }
+};
+ 
+//cambio: exportamos las funciones para usarlas en las rutas
+module.exports = {
+    crearFlashcard, 
+    repasarFlashcard, 
+    obtenerTarjetasParaRepasar,
+    obtenerTodasLasFlashcards, // <- Nueva
+    editarFlashcard,           // <- Nueva
+    eliminarFlashcard          // <- Nueva
+};

@@ -158,17 +158,14 @@ export function StudyDeck() {
             <span style={{ fontSize: '14px', color: '#6b7280', fontWeight: 'bold' }}>
               ¿Qué tan difícil fue recordarlo?
             </span>
-            <div style={{ display: 'flex', gap: '10px', flexWrap: 'wrap', justifyContent: 'center' }}>
-              <button className="btn-control" onClick={() => handleRateCard(0)} style={{ backgroundColor: '#fee2e2', color: '#991b1b', border: '1px solid #fca5a5' }}>
-                Me equivoqué
-              </button>
-              <button className="btn-control" onClick={() => handleRateCard(3)} style={{ backgroundColor: '#fef08a', color: '#854d0e', border: '1px solid #fde047' }}>
+           <div style={{ display: 'flex', gap: '10px', flexWrap: 'wrap', justifyContent: 'center' }}>
+              <button className="btn-control" onClick={() => handleRateCard(1)} style={{ backgroundColor: '#fef08a', color: '#854d0e', border: '1px solid #fde047' }}>
                 Difícil
               </button>
-              <button className="btn-control" onClick={() => handleRateCard(4)} style={{ backgroundColor: '#dcfce3', color: '#166534', border: '1px solid #86efac' }}>
+              <button className="btn-control" onClick={() => handleRateCard(2)} style={{ backgroundColor: '#dcfce3', color: '#166534', border: '1px solid #86efac' }}>
                 Bien
               </button>
-              <button className="btn-control" onClick={() => handleRateCard(5)} style={{ backgroundColor: '#dbeafe', color: '#1e40af', border: '1px solid #93c5fd' }}>
+              <button className="btn-control" onClick={() => handleRateCard(3)} style={{ backgroundColor: '#dbeafe', color: '#1e40af', border: '1px solid #93c5fd' }}>
                 Muy Fácil
               </button>
             </div>

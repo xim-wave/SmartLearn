@@ -17,13 +17,16 @@ const router = express.Router();
 const verificarTokenSupabase = require('../middlewares/authMiddleware');
 
 //importamos la funcion crearMazo de controllers
-const { crearMazo, obtenerMazos, editarMazo, eliminarMazo } = require('../controllers/mazoController');
+const { crearMazo, obtenerMazos, editarMazo, eliminarMazo, obtenerMazoPorId } = require('../controllers/mazoController');
 
 //cuando alguien haga una peticion POST, se ejecute crearMazo
 router.post('/', verificarTokenSupabase, crearMazo);
 
 //Puerta GET: para leer los mazos existentes en las tablas
 router.get('/', verificarTokenSupabase, obtenerMazos);
+
+//Puerta GET: para leer un mazo específico por su ID
+router.get('/:id', verificarTokenSupabase, obtenerMazoPorId);
 
 //Puerta PUT para editar un mazo
 router.put('/:id', verificarTokenSupabase, editarMazo);

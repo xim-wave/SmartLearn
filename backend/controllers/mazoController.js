@@ -48,16 +48,33 @@ const crearMazo = async(req, res) => {
 // funcion para obtener todos los mazos
 const obtenerMazos = async (req, res) => {
     try {
+        // 1. Hacemos la consulta relacional. 
+        // Le pedimos todo del mazo (*) y que cuente las flashcards asociadas.
         const { data, error } = await req.supabaseClient
             .from('mazos')
-            .select('*');
+            .select('*, flashcards(count)');
 
         if (error) throw error;
+
+        // 2. Supabase devuelve la cuenta en un formato algo anidado: { flashcards: [{ count: 5 }] }
+        // Vamos a "limpiarlo" para que tu frontend lo reciba mucho más fácil:
+        const mazosConConteo = data.map(mazo => {
+            // Extraemos el número (si no tiene tarjetas o la relación falla, ponemos 0)
+            const cantidad = mazo.flashcards && mazo.flashcards[0] ? mazo.flashcards[0].count : 0;
+            
+            // Borramos la propiedad fea de flashcards y le ponemos una limpia
+            delete mazo.flashcards; 
+            
+            return {
+                ...mazo,
+                cantidad_tarjetas: cantidad // <--- Esta es la nueva propiedad
+            };
+        });
 
         res.status(200).json({
             status: 200,
             mensaje: "Mazos recuperados.",
-            mazos: data
+            mazos: mazosConConteo
         });
     } catch (error){
         console.error("Error al obtener los mazos", error.message);
@@ -115,5 +132,25 @@ const eliminarMazo = async (req, res) => {
     }
 };
 
+// Función para obtener un solo mazo por su ID
+const obtenerMazoPorId = async (req, res) => {
+    try {
+        const { id } = req.params;
+
+        const { data, error } = await req.supabaseClient
+            .from('mazos')
+            .select('*')
+            .eq('mazo_id', id) // o 'id' si tu columna se llama así
+            .single(); // .single() le dice a Supabase que solo traiga un objeto, no un arreglo
+
+        if (error) throw error;
+
+        res.status(200).json(data);
+    } catch (error) {
+        console.error("Error al obtener el mazo:", error.message);
+        res.status(500).json({ error: error.message });
+    }
+};
+
 // exportamos la funcion para que las rutas la puedan usar
-module.exports = { crearMazo, obtenerMazos, editarMazo, eliminarMazo };
+module.exports = { crearMazo, obtenerMazos, editarMazo, eliminarMazo, obtenerMazoPorId };

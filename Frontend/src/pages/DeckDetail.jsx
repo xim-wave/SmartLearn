@@ -2,6 +2,7 @@ import React, { useState, useEffect, useRef } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import { ArrowLeft, Play, Plus, Upload, X, Sparkles, Layers, CheckCircle, Edit2, Trash2, Save, FileText } from 'lucide-react';
 import { flashcardService } from '../services/flashcardService'; 
+import { mazoService } from '../services/mazoService'; // Asegúrate de que la ruta coincida con la estructura de tus carpetas
 import './DeckDetail.css';
 
 export function DeckDetail() {
@@ -32,12 +33,25 @@ export function DeckDetail() {
   const [recursos, setRecursos] = useState([]); // ¡El único estado de recursos que necesitas!
 
   // --- EFECTOS ---
+ // Asegúrate de importar mazoService en la parte superior de tu archivo si no lo tienes:
+  // import { mazoService } from '../services/mazoService';
+
   useEffect(() => {
-    setCurrentDeck({ title: `Mazo de Estudio`, description: 'Administra todas tus tarjetas aquí' });
+    // 1. Borramos el "setCurrentDeck" fijo que decía "Mazo de Estudio"
     cargarTarjetas();
     
     const cargarTodo = async () => {
       try {
+        // 2. Pedimos los datos del mazo al backend
+        const mazoData = await mazoService.obtenerMazo(id); // (asegúrate de tener esta función en tu mazoService)
+        
+        // 3. Actualizamos la pantalla con el nombre y descripción reales
+        setCurrentDeck({ 
+          title: mazoData.nombre || 'Mazo sin título', 
+          description: mazoData.descripcion || 'Administra tus tarjetas aquí' 
+        });
+
+        // 4. Cargamos los recursos (esto ya lo tenías)
         const recursosData = await flashcardService.obtenerRecursos(id);
         setRecursos(recursosData); 
       } catch (error) {

@@ -2,9 +2,30 @@ import api from './api';
 
 export const mazoService = {
   // Obtener todos los mazos
-  obtenerMazos: async () => {
-    const response = await api.get('/mazos');
-    return response.data;
+ obtenerMazos: async () => {
+    try {
+      const token = localStorage.getItem('token');
+      const response = await fetch('http://localhost:3000/api/mazos', {
+        headers: { 'Authorization': `Bearer ${token}` }
+      });
+      if (!response.ok) throw new Error('Error al obtener los mazos');
+      return await response.json();
+    } catch (error) {
+      throw error;
+    }
+  },
+  obtenerMazo: async (id) => {
+    try {
+      const token = localStorage.getItem('token');
+      const response = await fetch(`http://localhost:3000/api/mazos/${id}`, {
+        method: 'GET',
+        headers: { 'Authorization': `Bearer ${token}` }
+      });
+      if (!response.ok) throw new Error('Error al obtener el mazo');
+      return await response.json();
+    } catch (error) {
+      throw error;
+    }
   },
 
   // Crear un mazo

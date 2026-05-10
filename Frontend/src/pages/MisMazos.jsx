@@ -45,10 +45,11 @@ export function MisMazos() {
       }
       
       const mazosReales = listaDeMazos.map(mazo => ({
-        id: mazo.mazo_id || mazo.id, // 👈 AGREGAMOS mazo.mazo_id AQUÍ
+        id: mazo.mazo_id || mazo.id,
         title: mazo.nombre || mazo.title || 'Sin título',
         description: mazo.descripcion || mazo.description || 'Sin descripción',
-        totalCards: mazo.totalCards || 0,
+        // Le decimos que busque 'cantidad_tarjetas' que es lo que manda el backend
+        totalCards: mazo.cantidad_tarjetas || mazo.totalCards || 0, 
         dueCards: mazo.dueCards || 0,
         progress: mazo.progress || 0
       }));

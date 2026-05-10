@@ -13,7 +13,7 @@ const express = require('express');
 const cors = require('cors');
 
 //Cliente de supabase
-const supabase = require('./services/supabaseClient');
+const { supabase } = require('./services/supabaseClient');
 
 const app = express();
 

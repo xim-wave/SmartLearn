@@ -8,7 +8,7 @@
 */
 
 // importar la llave para comunicar con la base de datos
-const supabase = require('../services/supabaseClient');
+const { supabase } = require('../services/supabaseClient');
 
 // funcion "crear mazo"
 const crearMazo = async(req, res) => {

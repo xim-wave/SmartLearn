@@ -6,7 +6,7 @@
 =================================================================
 */
 
-
+const { supabaseAdmin } = require('../services/supabaseClient');
 
 const agregarRecursoAMazo = async(req, res) =>{
     try{
@@ -16,9 +16,9 @@ const agregarRecursoAMazo = async(req, res) =>{
             return res.status(400).json({error: "No se detecto ningun archivo"});
         }
 
-        //Subir al bucket supabase
+        // --- 1. SUBIR AL BUCKET ---
         const nombreArchivo = `${Date.now()}_${req.file.originalname}`;
-        const {data: uploadData, error: uploadError} = await req.supabaseClient.storage
+        const {data: uploadData, error: uploadError} = await supabaseAdmin.storage
         .from('recursos-estudio')
         .upload(nombreArchivo, req.file.buffer,{
             contentType: req.file.mimetype
@@ -26,23 +26,25 @@ const agregarRecursoAMazo = async(req, res) =>{
 
         if(uploadError) throw uploadError;
 
-        //toma la URL publica
-        const{data: {publicUrl} } = req.supabaseClient.storage
+        // --- 2. TOMAR URL PÚBLICA ---
+        const{data: {publicUrl} } = supabaseAdmin.storage
         .from('recursos-estudio')
         .getPublicUrl(nombreArchivo);
 
-        //calcula los metadatos (peso y tipo)
+        // Calcula metadatos según el esquema
         const pesoCalculado = parseFloat((req.file.size / (1024*1024)).toFixed(2));
-        const tipoCalculado = req.file.mimetype === 'application/pdf' ? 'PDF' : 'Imagen';
+        // El check del SQL solo acepta 'url' o 'pdf' (en minúsculas)
+        const tipoCalculado = 'pdf'; 
 
-        //guardar en tabla 'recursos' vinculandolo al mazo
-        const {data, error} = await req.supabaseClient
+        // --- 3. GUARDAR EN LA TABLA (CON NOMBRES EXACTOS DEL SQL) ---
+        const {data, error} = await supabaseAdmin
         .from('recursos')
         .insert([{
             mazo_id: mazo_id,
-            url_recurso: publicUrl,
-            peso_mb: pesoCalculado,
-            tipo_recurso: tipoCalculado
+            tipo: tipoCalculado,      // Antes: tipo_recurso
+            url_o_ruta: publicUrl,    // Antes: url_recurso
+            nombre: req.file.originalname, // ¡Agregado! Es obligatorio
+            tamanio_mb: pesoCalculado  // Antes: peso_mb
         }])
         .select();
 
@@ -60,4 +62,26 @@ const agregarRecursoAMazo = async(req, res) =>{
     }
 };
 
-module.exports = {agregarRecursoAMazo};
+// --- NUEVA FUNCIÓN PARA TRAER LOS RECURSOS ---
+const obtenerRecursosPorMazo = async (req, res) => {
+    try {
+        const { mazo_id } = req.params;
+
+        // Buscamos en la tabla 'recursos' todos los que coincidan con el mazo_id
+        const { data, error } = await supabaseAdmin
+            .from('recursos')
+            .select('*')
+            .eq('mazo_id', mazo_id)
+            
+        if (error) throw error;
+
+        // Le mandamos la lista al frontend
+        res.status(200).json(data);
+
+    } catch (error) {
+        console.error("Error al obtener los recursos.", error.message);
+        res.status(500).json({ error: error.message });
+    }
+};
+
+module.exports = { agregarRecursoAMazo, obtenerRecursosPorMazo };

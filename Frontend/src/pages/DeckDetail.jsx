@@ -8,78 +8,59 @@ export function DeckDetail() {
   const { id } = useParams();
   const navigate = useNavigate();
 
+  // --- ESTADOS GENERALES ---
   const [activeTab, setActiveTab] = useState('flashcards'); 
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [isFlashcardModalOpen, setIsFlashcardModalOpen] = useState(false); 
-  
-  const [resourcesList, setResourcesList] = useState([]); 
   const [flashcardsList, setFlashcardsList] = useState([]);
   const [currentDeck, setCurrentDeck] = useState({ title: 'Cargando...', description: '' });
+  const [toast, setToast] = useState({ visible: false, message: '' });
 
-  // Estados para crear una nueva tarjeta manual
+  // --- ESTADOS PARA TARJETAS MANUALES ---
   const [newQuestion, setNewQuestion] = useState('');
   const [newAnswer, setNewAnswer] = useState('');
   
-  // Estados para la EDICIÓN de tarjetas
+  // --- ESTADOS PARA EDICIÓN DE TARJETAS ---
   const [editandoId, setEditandoId] = useState(null);
   const [editPregunta, setEditPregunta] = useState("");
   const [editRespuesta, setEditRespuesta] = useState("");
 
-  const [toast, setToast] = useState({ visible: false, message: '' });
-
-  // --- NUEVOS ESTADOS PARA RECURSOS ---
+  // --- ESTADOS PARA RECURSOS (PDFs) ---
   const [selectedFile, setSelectedFile] = useState(null);
+  const [isUploading, setIsUploading] = useState(false);
   const fileInputRef = useRef(null);
+  const [recursos, setRecursos] = useState([]); // ¡El único estado de recursos que necesitas!
 
-  // Funciones para manejar el PDF
-  const handleAbrirSelector = () => {
-    fileInputRef.current.click(); // Activa el input oculto
-  };
-
-  const handleSeleccionarArchivo = (e) => {
-    const file = e.target.files[0];
-    if (!file) return;
-
-    // 10 MB en bytes
-    const MAX_SIZE = 10 * 1024 * 1024; 
-
-    // Validar el tipo de archivo (opcional pero recomendado)
-    if (file.type !== 'application/pdf') {
-      showToast('Por favor, selecciona un archivo PDF.');
-      e.target.value = null; // Limpiamos el input
-      return;
-    }
-
-    // Validar el peso
-    if (file.size > MAX_SIZE) {
-      showToast('⚠️ El archivo es muy grande. Máximo 10 MB.');
-      e.target.value = null; 
-      return;
-    }
-
-    // Si pasa las pruebas, lo guardamos en el estado
-    setSelectedFile(file);
-    showToast('Archivo seleccionado correctamente');
-  };
-
-  const handleSimularSubida = () => {
-    showToast(`¡Simulando subida de: ${selectedFile.name}!`);
-    // Lo agregamos a la lista visualmente
-    setResourcesList([...resourcesList, { id: Date.now(), name: selectedFile.name }]);
-    setSelectedFile(null); // Limpiamos la selección
-  };
-
+  // --- EFECTOS ---
   useEffect(() => {
     setCurrentDeck({ title: `Mazo de Estudio`, description: 'Administra todas tus tarjetas aquí' });
     cargarTarjetas();
+    
+    const cargarTodo = async () => {
+      try {
+        const recursosData = await flashcardService.obtenerRecursos(id);
+        setRecursos(recursosData); 
+      } catch (error) {
+        console.error("Error al cargar datos:", error);
+      }
+    };
+
+    cargarTodo();
   }, [id]);
 
-  // CARGAR TODAS LAS TARJETAS DEL MAZO
+  // --- FUNCIONES UTILITARIAS ---
+  const showToast = (message) => {
+    setToast({ visible: true, message });
+    setTimeout(() => { setToast({ visible: false, message: '' }); }, 3000);
+  };
+
+  const handleGoBack = () => navigate('/app/decks');
+  const handleStudyMode = () => navigate(`/app/decks/${id}/study`);
+
+  // --- FUNCIONES DE FLASHCARDS ---
   const cargarTarjetas = async () => {
     try {
-      // Ahora usamos obtenerTodasMazo para ver el inventario completo, no solo las de repasar hoy
       const data = await flashcardService.obtenerTodasMazo(id);
-      
       if (data && data.flashcards) {
         const tarjetasReales = data.flashcards.map(card => ({
           id: card.flashcard_id,
@@ -96,15 +77,6 @@ export function DeckDetail() {
     }
   };
 
-  const showToast = (message) => {
-    setToast({ visible: true, message });
-    setTimeout(() => { setToast({ visible: false, message: '' }); }, 3000);
-  };
-
-  const handleGoBack = () => navigate('/app/decks');
-  const handleStudyMode = () => navigate(`/app/decks/${id}/study`);
-
-  // CREAR TARJETA
   const handleSaveFlashcard = async (e) => {
     e.preventDefault();
     if (!newQuestion.trim() || !newAnswer.trim()) return;
@@ -120,47 +92,85 @@ export function DeckDetail() {
       setNewQuestion('');
       setNewAnswer('');
       setIsFlashcardModalOpen(false);
-      cargarTarjetas(); // Recargar la lista
+      cargarTarjetas();
     } catch (error) {
       console.error("Error al crear tarjeta:", error);
       showToast('Hubo un error al guardar la tarjeta');
     }
   };
 
-  // ELIMINAR TARJETA
   const handleEliminar = async (flashcard_id) => {
     if (window.confirm("¿Estás seguro de que quieres borrar esta tarjeta para siempre?")) {
       try {
         await flashcardService.eliminarFlashcard(flashcard_id);
         showToast('Tarjeta eliminada');
-        cargarTarjetas(); // Recargar la lista
+        cargarTarjetas(); 
       } catch (error) {
         showToast("No se pudo eliminar la tarjeta");
       }
     }
   };
 
-  // INICIAR MODO EDICIÓN
   const iniciarEdicion = (tarjeta) => {
     setEditandoId(tarjeta.id);
     setEditPregunta(tarjeta.question);
     setEditRespuesta(tarjeta.answer);
   };
 
-  // GUARDAR EDICIÓN
   const guardarEdicion = async (flashcard_id) => {
     try {
       await flashcardService.editarFlashcard(flashcard_id, editPregunta, editRespuesta);
       setEditandoId(null);
       showToast('Tarjeta actualizada correctamente');
-      cargarTarjetas(); // Recargar la lista
+      cargarTarjetas(); 
     } catch (error) {
       showToast("No se pudo actualizar la tarjeta");
     }
   };
 
-  return (
+  // --- FUNCIONES DE RECURSOS ---
+  const handleAbrirSelector = () => {
+    fileInputRef.current.click(); 
+  };
 
+  const handleSeleccionarArchivo = (e) => {
+    const file = e.target.files[0];
+    if (!file) return;
+
+    const MAX_SIZE = 10 * 1024 * 1024; // 10 MB
+
+    if (file.type !== 'application/pdf') {
+      showToast('Por favor, selecciona un archivo PDF.');
+      e.target.value = null; 
+      return;
+    }
+
+    if (file.size > MAX_SIZE) {
+      showToast('⚠️ El archivo es muy grande. Máximo 10 MB.');
+      e.target.value = null; 
+      return;
+    }
+
+    setSelectedFile(file);
+    showToast('Archivo seleccionado correctamente');
+  };
+
+  const handleUploadReal = async () => {
+    setIsUploading(true); // Cambiamos estado de carga
+    try {
+      const data = await flashcardService.subirRecurso(id, selectedFile);
+      setRecursos(prev => [...prev, data.recurso]);
+      setSelectedFile(null);
+      showToast("¡Archivo subido con éxito!"); // Usamos showToast en lugar de alert
+    } catch (error) {
+      console.error("🚨 Error al subir:", error);
+      showToast("No se pudo subir el archivo: " + error.message);
+    } finally {
+      setIsUploading(false); // Quitamos estado de carga
+    }
+  };
+
+  return (
     <div className="deck-detail-container">
       <button className="btn-back" onClick={handleGoBack}>
         <ArrowLeft size={16} />
@@ -189,7 +199,8 @@ export function DeckDetail() {
           className={`tab-btn ${activeTab === 'recursos' ? 'active' : ''}`}
           onClick={() => setActiveTab('recursos')}
         >
-          Recursos ({resourcesList.length})
+          {/* Corregido a recursos.length */}
+          Recursos ({recursos.length}) 
         </button>
       </div>
 
@@ -221,7 +232,6 @@ export function DeckDetail() {
                 {flashcardsList.map((card) => (
                   <div key={card.id} className="flashcard-item" style={{ display: 'flex', flexDirection: 'column' }}>
                     
-                    {/* SI ESTAMOS EDITANDO ESTA TARJETA */}
                     {editandoId === card.id ? (
                       <div style={{ padding: '10px', display: 'flex', flexDirection: 'column', gap: '10px', height: '100%' }}>
                         <textarea 
@@ -246,7 +256,6 @@ export function DeckDetail() {
                         </div>
                       </div>
                     ) : (
-                      /* VISTA NORMAL DE LA TARJETA */
                       <>
                         <div className="flashcard-q">
                           <span className="label-q">P</span>
@@ -258,7 +267,6 @@ export function DeckDetail() {
                           <p>{card.answer}</p>
                         </div>
                         
-                        {/* BOTONES DE ADMINISTRACIÓN */}
                         <div style={{ display: 'flex', justifyContent: 'flex-end', gap: '10px', marginTop: '15px', paddingTop: '10px', borderTop: '1px dashed #e5e7eb' }}>
                           <button onClick={() => iniciarEdicion(card)} style={{ display: 'flex', alignItems: 'center', gap: '4px', background: 'none', border: 'none', cursor: 'pointer', color: '#4F46E5', fontSize: '0.85rem', fontWeight: '500' }}>
                             <Edit2 size={14} /> Editar
@@ -277,16 +285,15 @@ export function DeckDetail() {
           </div>
         )}
 
-{/* PESTAÑA: RECURSOS */}
+        {/* PESTAÑA: RECURSOS */}
         {activeTab === 'recursos' && (
           <div className="resources-section">
-            <div className="section-actions">
+            <div className="section-actions mb-6">
               <button className="btn-add" onClick={handleAbrirSelector}>
                 <Plus size={16} /> Añadir Recurso
               </button>
             </div>
             
-            {/* Input de archivo oculto */}
             <input 
               type="file" 
               ref={fileInputRef} 
@@ -295,16 +302,16 @@ export function DeckDetail() {
               onChange={handleSeleccionarArchivo} 
             />
 
-            {/* VISTAS DEPENDIENDO DEL ESTADO */}
-            {resourcesList.length === 0 && !selectedFile ? (
-              // 1. Estado inicial vacío
+            {/* ZONA DE SUBIDA: Si no hay recursos guardados y no hay archivo seleccionado */}
+            {recursos.length === 0 && !selectedFile ? (
               <div className="empty-state" onClick={handleAbrirSelector} style={{ cursor: 'pointer', transition: '0.2s' }}>
                 <Upload size={48} className="empty-icon" />
                 <h3>Sube tus apuntes (PDF)</h3>
                 <p>Haz clic aquí para seleccionar tu archivo (Máximo 10 MB).</p>
               </div>
-            ) : selectedFile ? (
-              // 2. Archivo seleccionado, listo para subir
+            ) 
+            /* ZONA DE PROCESAMIENTO: Si hay un archivo seleccionado listo para subir */
+            : selectedFile ? (
               <div className="empty-state" style={{ borderStyle: 'solid', borderColor: '#8b5cf6', backgroundColor: '#f5f3ff' }}>
                 <FileText size={48} className="empty-icon" style={{ color: '#8b5cf6' }} />
                 <h3>Archivo listo para procesar</h3>
@@ -314,31 +321,58 @@ export function DeckDetail() {
                 </p>
                 
                 <div style={{ display: 'flex', gap: '10px', marginTop: '15px', justifyContent: 'center' }}>
-                  <button onClick={handleSimularSubida} className="btn-add" style={{ padding: '8px 20px' }}>
-                    Subir Documento
+                  <button 
+                    onClick={handleUploadReal} 
+                    className="btn-add" 
+                    style={{ padding: '8px 20px', opacity: isUploading ? 0.6 : 1 }}
+                    disabled={isUploading}
+                  >
+                    {isUploading ? 'Subiendo...' : 'Subir Documento'}
                   </button>
-                  <button onClick={() => setSelectedFile(null)} className="btn-back" style={{ margin: 0 }}>
+                  <button onClick={() => setSelectedFile(null)} className="btn-back" style={{ margin: 0 }} disabled={isUploading}>
                     Cancelar
                   </button>
                 </div>
               </div>
-            ) : (
-               // 3. Lista de recursos ya subidos
-               <div className="resources-list" style={{ display: 'flex', flexDirection: 'column', gap: '10px' }}>
-                 {resourcesList.map(rec => (
-                   <div key={rec.id} style={{ display: 'flex', alignItems: 'center', gap: '15px', padding: '15px', border: '1px solid #e5e7eb', borderRadius: '8px', backgroundColor: 'white' }}>
-                     <FileText size={24} style={{ color: '#ef4444' }} />
-                     <span style={{ fontWeight: '500', flexGrow: 1 }}>{rec.name}</span>
-                     <button style={{ background: 'none', border: 'none', color: '#6b7280', cursor: 'pointer' }} onClick={() => showToast('Descarga en construcción')}>
-                        Ver
-                     </button>
-                   </div>
-                 ))}
-               </div>
+            ) 
+            /* LISTA DE ARCHIVOS: Si ya hay recursos guardados */
+            : (
+              <div className="mt-4">
+                <h3 className="text-xl font-bold mb-4">Material de Apoyo</h3>
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                  {recursos.map((recurso) => (
+                    <div key={recurso.recurso_id} className="border p-4 rounded-lg flex items-center justify-between bg-white shadow-sm" style={{ border: '1px solid #e5e7eb' }}>
+                      <div className="flex items-center">
+                        <span className="text-3xl mr-3">
+                          {recurso.tipo === 'pdf' ? '📄' : '🔗'}
+                        </span>
+                        <div>
+                          <p className="font-semibold text-blue-600 truncate max-w-[200px]" style={{ color: '#2563eb', fontWeight: '600' }}>
+                            {recurso.nombre}
+                          </p>
+                          <p className="text-xs text-gray-400" style={{ fontSize: '0.75rem', color: '#9ca3af' }}>
+                            {recurso.tamanio_mb} MB
+                          </p>
+                        </div>
+                      </div>
+                      
+                      <a 
+                        href={recurso.url_o_ruta} 
+                        target="_blank" 
+                        rel="noopener noreferrer"
+                        className="bg-blue-500 text-white px-3 py-1 rounded hover:bg-blue-600 text-sm"
+                        style={{ backgroundColor: '#3b82f6', color: 'white', padding: '0.25rem 0.75rem', borderRadius: '0.25rem', textDecoration: 'none', fontSize: '0.875rem' }}
+                      >
+                        Ver Archivo
+                      </a>
+                    </div>
+                  ))}
+                </div>
+              </div>
             )}
           </div>
         )}
-</div>
+      </div>
 
       {/* --- MODAL PARA CREAR TARJETA MANUAL --- */}
       {isFlashcardModalOpen && (

@@ -9,7 +9,7 @@
 */
 
 //conexion a base de datos
-const supabase = require('../services/supabaseClient');
+const { supabase } = require('../services/supabaseClient');
 
 //funcion registrar Usuario
 const registrarUsuario = async(req, res) => {

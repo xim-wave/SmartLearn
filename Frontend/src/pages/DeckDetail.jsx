@@ -1,6 +1,6 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
-import { ArrowLeft, Play, Plus, Upload, X, Sparkles, Layers, CheckCircle, Edit2, Trash2, Save } from 'lucide-react';
+import { ArrowLeft, Play, Plus, Upload, X, Sparkles, Layers, CheckCircle, Edit2, Trash2, Save, FileText } from 'lucide-react';
 import { flashcardService } from '../services/flashcardService'; 
 import './DeckDetail.css';
 
@@ -26,6 +26,48 @@ export function DeckDetail() {
   const [editRespuesta, setEditRespuesta] = useState("");
 
   const [toast, setToast] = useState({ visible: false, message: '' });
+
+  // --- NUEVOS ESTADOS PARA RECURSOS ---
+  const [selectedFile, setSelectedFile] = useState(null);
+  const fileInputRef = useRef(null);
+
+  // Funciones para manejar el PDF
+  const handleAbrirSelector = () => {
+    fileInputRef.current.click(); // Activa el input oculto
+  };
+
+  const handleSeleccionarArchivo = (e) => {
+    const file = e.target.files[0];
+    if (!file) return;
+
+    // 10 MB en bytes
+    const MAX_SIZE = 10 * 1024 * 1024; 
+
+    // Validar el tipo de archivo (opcional pero recomendado)
+    if (file.type !== 'application/pdf') {
+      showToast('Por favor, selecciona un archivo PDF.');
+      e.target.value = null; // Limpiamos el input
+      return;
+    }
+
+    // Validar el peso
+    if (file.size > MAX_SIZE) {
+      showToast('⚠️ El archivo es muy grande. Máximo 10 MB.');
+      e.target.value = null; 
+      return;
+    }
+
+    // Si pasa las pruebas, lo guardamos en el estado
+    setSelectedFile(file);
+    showToast('Archivo seleccionado correctamente');
+  };
+
+  const handleSimularSubida = () => {
+    showToast(`¡Simulando subida de: ${selectedFile.name}!`);
+    // Lo agregamos a la lista visualmente
+    setResourcesList([...resourcesList, { id: Date.now(), name: selectedFile.name }]);
+    setSelectedFile(null); // Limpiamos la selección
+  };
 
   useEffect(() => {
     setCurrentDeck({ title: `Mazo de Estudio`, description: 'Administra todas tus tarjetas aquí' });
@@ -118,6 +160,7 @@ export function DeckDetail() {
   };
 
   return (
+
     <div className="deck-detail-container">
       <button className="btn-back" onClick={handleGoBack}>
         <ArrowLeft size={16} />
@@ -234,22 +277,68 @@ export function DeckDetail() {
           </div>
         )}
 
-        {/* PESTAÑA: RECURSOS */}
+{/* PESTAÑA: RECURSOS */}
         {activeTab === 'recursos' && (
           <div className="resources-section">
             <div className="section-actions">
-              <button className="btn-add" onClick={() => setIsModalOpen(true)}>
+              <button className="btn-add" onClick={handleAbrirSelector}>
                 <Plus size={16} /> Añadir Recurso
               </button>
             </div>
-            <div className="empty-state">
-              <Upload size={48} className="empty-icon" />
-              <h3>Sección en construcción</h3>
-              <p>Próximamente podrás subir tus PDFs aquí.</p>
-            </div>
+            
+            {/* Input de archivo oculto */}
+            <input 
+              type="file" 
+              ref={fileInputRef} 
+              style={{ display: 'none' }} 
+              accept=".pdf" 
+              onChange={handleSeleccionarArchivo} 
+            />
+
+            {/* VISTAS DEPENDIENDO DEL ESTADO */}
+            {resourcesList.length === 0 && !selectedFile ? (
+              // 1. Estado inicial vacío
+              <div className="empty-state" onClick={handleAbrirSelector} style={{ cursor: 'pointer', transition: '0.2s' }}>
+                <Upload size={48} className="empty-icon" />
+                <h3>Sube tus apuntes (PDF)</h3>
+                <p>Haz clic aquí para seleccionar tu archivo (Máximo 10 MB).</p>
+              </div>
+            ) : selectedFile ? (
+              // 2. Archivo seleccionado, listo para subir
+              <div className="empty-state" style={{ borderStyle: 'solid', borderColor: '#8b5cf6', backgroundColor: '#f5f3ff' }}>
+                <FileText size={48} className="empty-icon" style={{ color: '#8b5cf6' }} />
+                <h3>Archivo listo para procesar</h3>
+                <p style={{ fontWeight: 'bold', color: '#4c1d95', margin: '5px 0' }}>{selectedFile.name}</p>
+                <p style={{ fontSize: '0.85rem', color: '#6b7280' }}>
+                  {(selectedFile.size / (1024 * 1024)).toFixed(2)} MB
+                </p>
+                
+                <div style={{ display: 'flex', gap: '10px', marginTop: '15px', justifyContent: 'center' }}>
+                  <button onClick={handleSimularSubida} className="btn-add" style={{ padding: '8px 20px' }}>
+                    Subir Documento
+                  </button>
+                  <button onClick={() => setSelectedFile(null)} className="btn-back" style={{ margin: 0 }}>
+                    Cancelar
+                  </button>
+                </div>
+              </div>
+            ) : (
+               // 3. Lista de recursos ya subidos
+               <div className="resources-list" style={{ display: 'flex', flexDirection: 'column', gap: '10px' }}>
+                 {resourcesList.map(rec => (
+                   <div key={rec.id} style={{ display: 'flex', alignItems: 'center', gap: '15px', padding: '15px', border: '1px solid #e5e7eb', borderRadius: '8px', backgroundColor: 'white' }}>
+                     <FileText size={24} style={{ color: '#ef4444' }} />
+                     <span style={{ fontWeight: '500', flexGrow: 1 }}>{rec.name}</span>
+                     <button style={{ background: 'none', border: 'none', color: '#6b7280', cursor: 'pointer' }} onClick={() => showToast('Descarga en construcción')}>
+                        Ver
+                     </button>
+                   </div>
+                 ))}
+               </div>
+            )}
           </div>
         )}
-      </div>
+</div>
 
       {/* --- MODAL PARA CREAR TARJETA MANUAL --- */}
       {isFlashcardModalOpen && (

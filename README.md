@@ -6,7 +6,7 @@ SmartLearn permite centralizar recursos académicos (PDFs, URLs), organizarlos e
 
 ---
 
-## ✨ Características principales
+##  Características principales
 
 - 🔐 **Autenticación segura** — Registro e inicio de sesión con JWT vía Supabase Auth
 - 📚 **Gestión de mazos** — Crea, edita y elimina colecciones temáticas de estudio
@@ -18,7 +18,7 @@ SmartLearn permite centralizar recursos académicos (PDFs, URLs), organizarlos e
 
 ---
 
-## 🛠️ Stack tecnológico
+##  Stack tecnológico
 
 | Capa | Tecnología | Versión |
 |---|---|---|
@@ -34,7 +34,7 @@ SmartLearn permite centralizar recursos académicos (PDFs, URLs), organizarlos e
 
 ---
 
-## 🚀 Despliegue en producción
+##  Despliegue en producción
 
 | Servicio | Plataforma |
 |---|---|
@@ -44,7 +44,7 @@ SmartLearn permite centralizar recursos académicos (PDFs, URLs), organizarlos e
 
 ---
 
-## ⚙️ Configuración local (para el equipo)
+##  Configuración local (para el equipo)
 
 ### Requisitos previos
 
@@ -117,11 +117,11 @@ La app quedará disponible en `http://localhost:5173`
 
 El esquema de la base de datos se encuentra en `/database/schema.sql`. Para aplicarlo, ejecuta el contenido del archivo en el **SQL Editor de Supabase**.
 
-> ⚠️ Asegúrate de que RLS (Row Level Security) esté habilitado en las tablas `mazos`, `recursos` y `flashcards`.
+> Asegúrate de que RLS (Row Level Security) esté habilitado en las tablas `mazos`, `recursos` y `flashcards`.
 
 ---
 
-## 📁 Estructura del proyecto
+##  Estructura del proyecto
 
 ```
 SmartLearn/
@@ -153,7 +153,7 @@ SmartLearn/
 
 ---
 
-## 🧮 Algoritmo SM-2
+##  Algoritmo SM-2
 
 El núcleo de SmartLearn es la función `calcularSM2()` en `/backend/utils/sm2.js`. Calcula el próximo intervalo de repaso usando la fórmula del algoritmo SuperMemo 2:
 
@@ -190,7 +190,7 @@ Donde `q` es la calidad de respuesta del usuario (escala 0–5) y `EF` es el Fac
 
 ---
 
-## 👥 Equipo de desarrollo
+##  Equipo de desarrollo
 
 | Integrante | Rol |
 |---|---|
@@ -202,7 +202,7 @@ Donde `q` es la calidad de respuesta del usuario (escala 0–5) y `EF` es el Fac
 
 ---
 
-## 📋 Notas
+##  Notas
 
 - El compilador de React **no está habilitado** en esta plantilla por su impacto en el rendimiento de desarrollo. Si deseas activarlo, consulta la [documentación oficial](https://react.dev/learn/react-compiler/installation).
 - Los archivos PDF adjuntos tienen un límite de **10 MB** por archivo (RF-10).

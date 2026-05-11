@@ -2,12 +2,11 @@
 ============================================================================
 *Archivo: server.js
 *Descripción: Archivo principal y punto de entrada del Backend de SmartLearn
-*Se encargad e inicializar el servidor Express, configurar los
-*middlewares de seguridad (CORS) y conectar todas las rutas
-*(API endpoints) de la aplicacion
-*Autor: David Mtz
+*... (tus comentarios)
 ============================================================================
 */
+
+require('dotenv').config(); // 👈 ¡ESTA ES LA LÍNEA SALVAVIDAS! Agrégala aquí.
 
 const express = require('express');
 const cors = require('cors');
